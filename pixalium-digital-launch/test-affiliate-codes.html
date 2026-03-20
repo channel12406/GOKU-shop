@@ -1,0 +1,45 @@
+// Test script to check affiliate codes in Firebase
+// Run this in browser console on your app page
+
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, get } from "firebase/database";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDgiUHoXX0KUb__H466Gv6zd5ZflunODf8",
+  authDomain: "shop-garena-bd558.firebaseapp.com",
+  databaseURL: "https://shop-garena-bd558-default-rtdb.firebaseio.com",
+  projectId: "shop-garena-bd558",
+  storageBucket: "shop-garena-bd558.firebasestorage.app",
+  messagingSenderId: "1021960273575",
+  appId: "1:1021960273575:web:2085fbeca66c2caea8e582",
+  measurementId: "G-XT7508TNX9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+async function checkAffiliateCodes() {
+  try {
+    const snapshot = await get(ref(db, "affiliateCodes"));
+    if (!snapshot.exists()) {
+      console.log("❌ No affiliate codes found in database!");
+      console.log("👉 You need to create codes from the admin panel first.");
+      return;
+    }
+    
+    const codes = snapshot.val();
+    console.log("✅ Found affiliate codes:");
+    console.table(
+      Object.entries(codes).map(([id, data]) => ({
+        ID: id,
+        ...data,
+        status: data.isActive ? 'Active' : 'Inactive',
+        expired: data.expiresAt && new Date() > new Date(data.expiresAt) ? 'YES' : 'NO'
+      }))
+    );
+  } catch (error) {
+    console.error("Error checking codes:", error);
+  }
+}
+
+checkAffiliateCodes();

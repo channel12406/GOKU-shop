@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Phone, Facebook, Linkedin, MapPin, Trophy, LogOut, UserPlus, Mail } from "lucide-react";
+import { Menu, X, Phone, Trophy, LogOut, UserPlus, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLongPress } from "@/hooks/useLongPress";
 import { auth } from "@/lib/firebase";
@@ -16,7 +16,7 @@ const navLinks = [
   { to: "/contact", label: "Contact" },
 ];
 
-const WHATSAPP = "22872123456";
+const WHATSAPP = "22951104575";
 
 function Navbar() {
   const [open, setOpen] = useState(false);
@@ -213,7 +213,7 @@ function Footer() {
           <div>
             <Logo showText={false} />
             <p className="text-muted-foreground text-sm leading-relaxed mt-4">
-              Plateforme n°1 au Togo pour la boutique de jeux mobiles 🎮.
+              Plateforme n°1 au Bénin pour la boutique de jeux mobiles 🎮.
               Free Fire, Call of Duty, PUBG, Roblox et plus encore.
             </p>
           </div>
@@ -230,16 +230,8 @@ function Footer() {
           <div>
             <h4 className="font-display font-semibold text-foreground mb-4">Contact</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-              <p>📍 Lomé, Togo</p>
-              <a
-                href="https://www.google.com/maps/place/PixaliumDigital/data=!4m2!3m1!1s0x0:0xfd45778c8c122b1b?sa=X&ved=1t:2428&hl=fr&ictx=111"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-1 text-primary hover:underline"
-              >
-                <MapPin className="w-4 h-4" /> Voir notre localisation
-              </a>
-              <p>📞 +228 72 12 21 91</p>
+              <p>📍 Bénin</p>
+              <p>📞 +229 51 10 45 75</p>
               <a
                 href={`https://wa.me/${WHATSAPP}`}
                 target="_blank"
@@ -247,22 +239,6 @@ function Footer() {
                 className="inline-flex items-center gap-2 mt-2 text-primary hover:underline"
               >
                 <Phone className="w-4 h-4" /> Chat on WhatsApp
-              </a>
-              <a
-                href="https://www.facebook.com/profile.php?id=61584331372644"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-2 text-primary hover:underline"
-              >
-                <Facebook className="w-4 h-4" /> Suivez-nous sur Facebook
-              </a>
-              <a
-                href="https://www.linkedin.com/in/pixalium-digital-25b733363/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-2 text-primary hover:underline"
-              >
-                <Linkedin className="w-4 h-4" /> Connectez-vous sur LinkedIn
               </a>
             </div>
           </div>

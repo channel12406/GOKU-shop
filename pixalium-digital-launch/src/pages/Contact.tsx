@@ -94,7 +94,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">Email</p>
-                    <p className="text-muted-foreground text-sm">support@gamerecharge-togo.com</p>
+                    <p className="text-muted-foreground text-sm">support@gokushop.bj</p>
                   </div>
                 </div>
               </div>

@@ -24,7 +24,7 @@ export default function About() {
           >
             <p className="text-muted-foreground leading-relaxed text-lg">
               Fondée avec la passion du gaming et l'objectif de rendre les recharges de jeux accessibles 
-              à tous les gamers africains, GOKU Shop est basée au BENIN et dessert toute l'Afrique de l'Ouest. 
+              à tous les gamers africains, GOKU Shop est basée au Bénin et dessert toute l'Afrique de l'Ouest. 
               Notre plateforme vous permet de recharger instantanément vos diamants Free Fire, CP Call of Duty, 
               UC PUBG, Robux Roblox et bien plus encore, aux meilleurs prix et avec un service client disponible 24/7.
             </p>

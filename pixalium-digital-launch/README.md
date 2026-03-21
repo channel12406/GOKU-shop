@@ -1,73 +1,115 @@
-# Welcome to your Lovable project
+# GOKU Shop - Recharge de Jeux Mobiles au Bénin
 
-## Project info
+Plateforme de recharge pour jeux mobiles : Free Fire, Call of Duty Mobile, PUBG, Roblox et plus encore.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Démarrage Rapide
 
-## How can I edit this code?
+### Prérequis
+- Node.js & npm installés
+- [Installer avec nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-There are several ways of editing your application.
+### Installation
 
-**Use Lovable**
+```bash
+# Cloner le repository
+git clone <URL_DU_REPOSITORY>
+cd GOKU-shop
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+# Installer les dépendances
+npm install
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Démarrer le serveur de développement
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Le serveur de développement démarrera sur http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛠️ Scripts Disponibles
 
-**Use GitHub Codespaces**
+- `npm run dev` - Serveur de développement avec hot reload
+- `npm run build` - Build pour la production
+- `npm run build:dev` - Build en mode développement
+- `npm run preview` - Prévisualiser le build de production
+- `npm run lint` - Linter le code
+- `npm run test` - Exécuter les tests
+- `npm run test:watch` - Tests en mode watch
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🎮 Fonctionnalités
 
-## What technologies are used for this project?
+### Jeux Supportés
+- **Free Fire** - Recharge de diamants
+- **Call of Duty Mobile** - Recharge de CP Points
+- **PUBG Mobile** - Recharge d'UC
+- **Roblox** - Recharge de Robux
+- **Blood Strike** - Recharge de Gold
 
-This project is built with:
+### Services
+- Recharge instantanée de devises
+- Abonnements hebdomadaires/mensuels
+- Booyah Pass & Level Up Pass (Free Fire)
+- Tournois de jeux
+- Système d'affiliation
+- Codes promo
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Méthodes de Paiement
+- Mobile Money (MTN, Moov)
+- Cartes bancaires
+- Transfert bancaire
 
-## How can I deploy this project?
+## 🏗️ Technologies Utilisées
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- **Frontend**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **UI Framework**: shadcn/ui + Tailwind CSS
+- **Animations**: Framer Motion
+- **Backend**: Firebase (Auth, Realtime Database, Storage)
+- **State Management**: React Query
+- **Routing**: React Router DOM
+- **Forms**: React Hook Form + Zod
 
-## Can I connect a custom domain to my Lovable project?
+## 📁 Structure du Projet
 
-Yes, you can!
+```
+src/
+├── components/     # Composants UI réutilisables
+├── pages/         # Pages de l'application
+├── lib/           # Services et utilitaires
+├── hooks/         # Hooks personnalisés
+├── assets/        # Images et icônes
+└── test/          # Tests unitaires
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔧 Configuration
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Firebase
+Le projet utilise Firebase pour l'authentification et la base de données. 
+Configurez votre propre projet Firebase dans `src/lib/firebase.ts`.
+
+### Variables d'Environnement
+Créez un fichier `.env.local` pour les variables sensibles :
+```
+VITE_FIREBASE_API_KEY=votre_clé_api
+VITE_FIREBASE_PROJECT_ID=votre_projet_id
+```
+
+## 🚀 Déploiement
+
+### Build de Production
+```bash
+npm run build
+```
+
+### Déploiement sur Vercel/Netlify
+1. Build le projet avec `npm run build`
+2. Uploadez le dossier `dist/`
+3. Configurez les variables d'environnement
+
+## 📱 Support et Contact
+
+Pour toute question ou support :
+- Email: support@gokushop.bj
+- Téléphone: +229 XX XX XX XX
+
+## 📄 Licence
+
+Ce projet est la propriété de GOKU Shop. Tous droits réservés.

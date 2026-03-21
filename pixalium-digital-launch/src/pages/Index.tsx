@@ -29,8 +29,8 @@ export default function Index() {
   return (
     <Layout>
       {/* SEO */}
-      <title>GameRecharge BENIN - Recharge Free Fire, COD, PUBG, Roblox | Diamants, CP, UC, Robux</title>
-      <meta name="description" content="Plateforme n°1 au BENIN pour recharger vos jeux préférés : Free Fire diamants, Call of Duty CP, PUBG UC, Roblox Robux. Recharge instantanée et sécurisée 24/7." />
+      <title>GOKU Shop - Recharge Free Fire, COD, PUBG, Roblox | Diamants, CP, UC, Robux</title>
+      <meta name="description" content="Plateforme n°1 au Bénin pour recharger vos jeux préférés : Free Fire diamants, Call of Duty CP, PUBG UC, Roblox Robux. Recharge instantanée et sécurisée 24/7." />
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-hero min-h-[90vh] flex items-center">
@@ -46,17 +46,14 @@ export default function Index() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
             >
-              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wider uppercase mb-6">
-                🎮 Recharge de Jeux Mobiles - Togo 🇹🇬
-              </span>
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
+                            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
                 Rechargez Vos{" "}
                 <span className="text-gradient">Jeux Préférés</span>{" "}
                 Instantanément
               </h1>
               <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-lg">
                 Free Fire diamants, Call of Duty CP, PUBG UC, Roblox Robux et plus encore. 
-                Meilleurs prix au Togo, recharge rapide et sécurisée.
+                Meilleurs prix au Bénin, recharge rapide et sécurisée.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -124,15 +121,15 @@ export default function Index() {
                 to="/recharge"
                 className={`group rounded-2xl p-6 bg-gradient-card border border-border/50 hover:border-primary/30 transition-all shadow-card hover:shadow-glow`}
               >
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${game.gradient} flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${game.gradient} flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                   {game.iconImage && (
                     <img 
                       src={game.iconImage} 
                       alt={`${game.name} icon`}
-                      className="w-10 h-10 object-contain"
+                      className="w-8 h-8 object-contain"
                     />
                   )}
-                  {!game.iconImage && <span className="text-3xl">{game.icon}</span>}
+                  {!game.iconImage && <span className="text-2xl">{game.icon}</span>}
                 </div>
                 <h3 className="font-display text-base font-semibold text-foreground text-center mb-2">{game.name}</h3>
                 <p className="text-muted-foreground text-xs text-center">{game.description}</p>

@@ -163,6 +163,36 @@ function Navbar() {
         </button>
       </div>
 
+      {/* Mobile Auth Dropdown */}
+      {showAuthDropdown && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-40 md:hidden" 
+            onClick={() => setShowAuthDropdown(false)}
+          />
+          {/* Mobile Dropdown */}
+          <div className="fixed top-16 right-4 left-4 z-50 md:hidden bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+            <Link
+              to="/signin"
+              className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-secondary transition-colors border-b border-border"
+              onClick={() => setShowAuthDropdown(false)}
+            >
+              <Mail className="w-4 h-4" />
+              Sign In
+            </Link>
+            <Link
+              to="/signup"
+              className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-secondary transition-colors"
+              onClick={() => setShowAuthDropdown(false)}
+            >
+              <UserPlus className="w-4 h-4" />
+              Sign Up
+            </Link>
+          </div>
+        </>
+      )}
+
       {/* Mobile Menu */}
       <AnimatePresence>
         {open && (
@@ -178,8 +208,8 @@ function Navbar() {
                   key={link.to}
                   to={link.to}
                   onClick={() => setOpen(false)}
-                  className={`text-sm font-medium py-2 transition-colors hover:text-primary ${
-                    location.pathname === link.to ? "text-primary" : "text-muted-foreground"
+                  className={`text-sm font-medium py-2 px-3 rounded-lg transition-colors hover:bg-secondary hover:text-primary ${
+                    location.pathname === link.to ? "text-primary bg-primary/10" : "text-muted-foreground"
                   }`}
                 >
                   {link.label}
@@ -189,13 +219,45 @@ function Navbar() {
                 <Link
                   to="/tournaments"
                   onClick={() => setOpen(false)}
-                  className={`text-sm font-medium py-2 transition-colors hover:text-primary flex items-center gap-2 ${
-                    location.pathname === "/tournaments" ? "text-primary" : "text-muted-foreground"
+                  className={`text-sm font-medium py-2 px-3 rounded-lg transition-colors hover:bg-secondary hover:text-primary flex items-center gap-2 ${
+                    location.pathname === "/tournaments" ? "text-primary bg-primary/10" : "text-muted-foreground"
                   }`}
                 >
                   <Trophy className="w-4 h-4" />
                   Tournois
                 </Link>
+              )}
+              {!currentUser && (
+                <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
+                  <button
+                    onClick={() => {
+                      setShowAuthDropdown(!showAuthDropdown);
+                      setOpen(false);
+                    }}
+                    className="text-sm font-medium py-2 px-3 rounded-lg bg-gradient-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Account
+                  </button>
+                  <div className="flex flex-col gap-1">
+                    <Link
+                      to="/signin"
+                      onClick={() => setOpen(false)}
+                      className="text-sm font-medium py-2 px-3 rounded-lg bg-secondary hover:bg-accent transition-colors flex items-center gap-2"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/signup"
+                      onClick={() => setOpen(false)}
+                      className="text-sm font-medium py-2 px-3 rounded-lg bg-secondary hover:bg-accent transition-colors flex items-center gap-2"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Sign Up
+                    </Link>
+                  </div>
+                </div>
               )}
             </div>
           </motion.div>

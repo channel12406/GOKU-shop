@@ -275,8 +275,8 @@ export default function RechargePage() {
           />
 
           {/* Game Selector with Cover Images */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 max-w-6xl mx-auto">
-            {games.filter(g => ["freefire", "roblox", "cod", "bloodstrike"].includes(g.id)).map((game) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-12 max-w-7xl mx-auto">
+            {games.filter(g => ["freefire", "roblox", "cod", "pubg", "bloodstrike"].includes(g.id)).map((game) => (
               <button
                 key={game.id}
                 onClick={() => setSelectedGame(game.id)}
@@ -442,6 +442,22 @@ export default function RechargePage() {
                   popular={[2, 3].includes(i)}
                   gameIcon={games.find(g => g.id === "cod")?.tokenIcon}
                   coverImage={games.find(g => g.id === "cod")?.coverImage}
+                />
+              ))
+            }
+            
+            {/* PUBG Mobile */}
+            {selectedGame === "pubg" &&
+              rechargePackages.pubg.map((pkg, i) => (
+                <PackageCard
+                  key={i}
+                  pkg={pkg}
+                  type="uc"
+                  index={i}
+                  onOrder={handleOrder}
+                  popular={[6, 7, 9].includes(i)}
+                  gameIcon={games.find(g => g.id === "pubg")?.tokenIcon}
+                  coverImage={games.find(g => g.id === "pubg")?.coverImage}
                 />
               ))
             }

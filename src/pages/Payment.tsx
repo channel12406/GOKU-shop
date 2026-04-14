@@ -22,8 +22,8 @@ const countries: Record<string, { name: string; flag: string; methods: {name: st
     name: "Togo", 
     flag: "🇹🇬", 
     methods: [
-      { name: "Moov Money", number: "Bientot disponible", operator: "Moov" },
-      { name: "TMoney", number: "+228 72 16 82 09", operator: "Togo Telecom" }
+      { name: "TMoney", number: "+228 72 16 82 09", operator: "Togo Telecom" },
+      { name: "Moov Money", number: "+229 01 58 75 88 20", operator: "Moov" }
     ] 
   },
   BF: { 
@@ -31,7 +31,7 @@ const countries: Record<string, { name: string; flag: string; methods: {name: st
     flag: "🇧🇫", 
     methods: [
       { name: "Orange Money", number: "Bientôt disponible dans votre région", operator: "Orange" },
-      { name: "Moov Money", number: "Bientôt disponible dans votre région", operator: "Moov" },
+      { name: "Moov Money", number: "+229 01 58 75 88 20", operator: "Moov" },
       { name: "MTN Mobile Money", number: "Bientôt disponible dans votre région", operator: "MTN" }
     ] 
   },
@@ -39,9 +39,9 @@ const countries: Record<string, { name: string; flag: string; methods: {name: st
     name: "Bénin", 
     flag: "🇧🇯", 
     methods: [
-      { name: "MTN Mobile Money", number: "+229 51 10 45 75", operator: "MTN" },
-      { name: "Moov Money", number: "+229 51 10 45 75", operator: "Moov" },
-      { name: "Celtiis Cash", number: "+229 51 10 45 75", operator: "Celtiis" }
+      { name: "MTN Mobile Money", number: "+229 01 51 10 45 75", operator: "MTN" },
+      { name: "Moov Money", number: "+229 01 58 75 88 20", operator: "Moov" },
+      { name: "Celtiis Cash", number: "+229 01 93 83 96 12", operator: "Celtiis" }
     ] 
   },
   CI: { 

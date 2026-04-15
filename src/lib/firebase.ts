@@ -4,17 +4,34 @@ import { getDatabase, ref, push, get, remove, update, onValue, type DatabaseRefe
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, type User } from "firebase/auth";
 import { getStorage, ref as storageRef, getDownloadURL, uploadBytes, deleteObject, type UploadResult } from "firebase/storage";
 
+// Validate required environment variables
+// Temporarily commented for testing
+/*
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_DATABASE_URL',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_APP_ID'
+];
+
+const missingEnvVars = requiredEnvVars.filter(envVar => !import.meta.env[envVar]);
+if (missingEnvVars.length > 0) {
+  throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}. Please check your .env.local file.`);
+}
+*/
+
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDgiUHoXX0KUb__H466Gv6zd5ZflunODf8",
-  authDomain: "shop-garena-bd558.firebaseapp.com",
-  databaseURL: "https://shop-garena-bd558-default-rtdb.firebaseio.com",
-  projectId: "shop-garena-bd558",
-  storageBucket: "shop-garena-bd558.firebasestorage.app",
-  messagingSenderId: "1021960273575",
-  appId: "1:1021960273575:web:2085fbeca66c2caea8e582",
-  measurementId: "G-XT7508TNX9"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDgiUHoXX0KUb__H466Gv6zd5ZflunODf8",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "shop-garena-bd558.firebaseapp.com",
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://shop-garena-bd558-default-rtdb.firebaseio.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "shop-garena-bd558",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "shop-garena-bd558.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1021960273575",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1021960273575:web:2085fbeca66c2caea8e582",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-XT7508TNX9"
 };
 
 // Initialize Firebase
@@ -23,6 +40,122 @@ const analytics = getAnalytics(app);
 export const db = getDatabase(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+// ── Validation Functions ──
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+function validateOrder(order: Omit<Order, "id">): ValidationResult {
+  const errors: string[] = [];
+
+  // Required fields validation
+  if (!order.productName || order.productName.trim().length < 2) {
+    errors.push('Product name must be at least 2 characters');
+  }
+
+  if (!order.price || !/^\d+$/.test(order.price)) {
+    errors.push('Price must be a valid number string');
+  }
+
+  if (!order.quantity || order.quantity <= 0) {
+    errors.push('Quantity must be greater than 0');
+  }
+
+  if (!order.status || !['pending', 'confirmed', 'completed', 'cancelled'].includes(order.status)) {
+    errors.push('Status must be one of: pending, confirmed, completed, cancelled');
+  }
+
+  if (!order.createdAt) {
+    errors.push('Created date is required');
+  }
+
+  // Email validation for customer
+  if (order.customerMessage && order.customerMessage.length > 1000) {
+    errors.push('Customer message must be less than 1000 characters');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+function validateContactMessage(msg: Omit<ContactMessage, "id">): ValidationResult {
+  const errors: string[] = [];
+
+  if (!msg.name || msg.name.trim().length < 2) {
+    errors.push('Name must be at least 2 characters');
+  }
+
+  if (!msg.email || !/^[^@]+@[^@]+\.[^@]+$/.test(msg.email)) {
+    errors.push('Valid email is required');
+  }
+
+  if (!msg.service || msg.service.trim().length < 2) {
+    errors.push('Service must be at least 2 characters');
+  }
+
+  if (!msg.message || msg.message.trim().length < 10) {
+    errors.push('Message must be at least 10 characters');
+  }
+
+  if (!msg.createdAt) {
+    errors.push('Created date is required');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+function validateTournament(tournament: Omit<Tournament, "id" | "createdAt">): ValidationResult {
+  const errors: string[] = [];
+
+  if (!tournament.name || tournament.name.trim().length < 2) {
+    errors.push('Tournament name must be at least 2 characters');
+  }
+
+  if (!tournament.game || tournament.game.trim().length < 2) {
+    errors.push('Game must be specified');
+  }
+
+  if (!tournament.description || tournament.description.trim().length < 10) {
+    errors.push('Description must be at least 10 characters');
+  }
+
+  if (!tournament.startDate) {
+    errors.push('Start date is required');
+  }
+
+  if (!tournament.endDate) {
+    errors.push('End date is required');
+  }
+
+  if (!tournament.maxParticipants || tournament.maxParticipants <= 0) {
+    errors.push('Max participants must be greater than 0');
+  }
+
+  if (!tournament.entryFee || !/^\d+$/.test(tournament.entryFee)) {
+    errors.push('Entry fee must be a valid number');
+  }
+
+  if (!tournament.prizePool || !/^\d+$/.test(tournament.prizePool)) {
+    errors.push('Prize pool must be a valid number');
+  }
+
+  if (!tournament.status || !['upcoming', 'ongoing', 'completed', 'cancelled'].includes(tournament.status)) {
+    errors.push('Status must be one of: upcoming, ongoing, completed, cancelled');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
 
 // ── Database helpers ──
 
@@ -171,12 +304,60 @@ export interface AffiliateCode {
   description?: string;
 }
 
+export interface UserProfile {
+  id?: string;
+  uid: string;
+  email: string;
+  username: string;
+  displayName?: string;
+  avatar?: string;
+  phone?: string;
+  country?: string;
+  bio?: string;
+  preferredGames?: string[];
+  totalOrders: number;
+  totalSpent: number;
+  tournamentParticipations: number;
+  tournamentWins: number;
+  level: number;
+  experience: number;
+  isVerified: boolean;
+  isPremium: boolean;
+  joinDate: string;
+  lastActive: string;
+  achievements?: string[];
+  socialLinks?: {
+    discord?: string;
+    twitter?: string;
+    youtube?: string;
+    twitch?: string;
+  };
+  stats?: {
+    gamesPlayed: number;
+    winRate: number;
+    favoriteGame: string;
+    totalPlayTime: number;
+  };
+}
+
 export async function addOrder(order: Omit<Order, "id">) {
+  // Server-side validation
+  const orderValidation = validateOrder(order);
+  if (!orderValidation.isValid) {
+    throw new Error(`Invalid order data: ${orderValidation.errors.join(', ')}`);
+  }
+
   const ordersRef = ref(db, "orders");
   return push(ordersRef, order);
 }
 
 export async function addContactMessage(msg: Omit<ContactMessage, "id">) {
+  // Server-side validation
+  const messageValidation = validateContactMessage(msg);
+  if (!messageValidation.isValid) {
+    throw new Error(`Invalid contact message: ${messageValidation.errors.join(', ')}`);
+  }
+
   const msgsRef = ref(db, "contacts");
   return push(msgsRef, msg);
 }
@@ -204,6 +385,12 @@ export async function addTestimonial(testimonial: Omit<Testimonial, "id" | "appr
 }
 
 export async function addTournament(tournament: Omit<Tournament, "id" | "createdAt">) {
+  // Server-side validation
+  const tournamentValidation = validateTournament(tournament);
+  if (!tournamentValidation.isValid) {
+    throw new Error(`Invalid tournament data: ${tournamentValidation.errors.join(', ')}`);
+  }
+
   const tournamentsRef = ref(db, "tournaments");
   return push(tournamentsRef, {
     ...tournament,
@@ -413,4 +600,157 @@ export async function incrementAffiliateCodeUsage(id: string) {
 
 export async function getAllAffiliateCodes(): Promise<(AffiliateCode & { id: string })[]> {
   return getRecords<AffiliateCode>("affiliateCodes");
+}
+
+// ---- User Profile Management ----
+
+export async function createOrUpdateUserProfile(profile: Omit<UserProfile, "id">): Promise<void> {
+  const profileRef = ref(db, `users/${profile.uid}`);
+  return update(profileRef, {
+    ...profile,
+    lastActive: new Date().toISOString()
+  });
+}
+
+export async function getUserProfile(uid: string): Promise<(UserProfile & { id: string }) | null> {
+  const snapshot = await get(ref(db, `users/${uid}`));
+  if (!snapshot.exists()) return null;
+  
+  const profile = snapshot.val() as UserProfile;
+  return { id: uid, ...profile };
+}
+
+export function subscribeToUserProfile(uid: string, callback: (profile: (UserProfile & { id: string }) | null) => void): () => void {
+  const profileRef = ref(db, `users/${uid}`);
+  const unsubscribe = onValue(profileRef, (snapshot) => {
+    if (!snapshot.exists()) {
+      callback(null);
+      return;
+    }
+    const profile = { id: uid, ...(snapshot.val() as UserProfile) };
+    callback(profile);
+  });
+  return unsubscribe;
+}
+
+export async function updateUserStats(uid: string, stats: Partial<UserProfile['stats']>): Promise<void> {
+  const profileRef = ref(db, `users/${uid}/stats`);
+  return update(profileRef, stats);
+}
+
+export async function addUserAchievement(uid: string, achievement: string): Promise<void> {
+  const profileRef = ref(db, `users/${uid}`);
+  const snapshot = await get(profileRef);
+  if (!snapshot.exists()) return;
+  
+  const profile = snapshot.val() as UserProfile;
+  const achievements = profile.achievements || [];
+  if (!achievements.includes(achievement)) {
+    achievements.push(achievement);
+    return update(profileRef, { 
+      achievements,
+      experience: (profile.experience || 0) + 50,
+      lastActive: new Date().toISOString()
+    });
+  }
+}
+
+export async function updateUserLevel(uid: string): Promise<void> {
+  const profileRef = ref(db, `users/${uid}`);
+  const snapshot = await get(profileRef);
+  if (!snapshot.exists()) return;
+  
+  const profile = snapshot.val() as UserProfile;
+  const newLevel = Math.floor((profile.experience || 0) / 100) + 1;
+  
+  if (newLevel > profile.level) {
+    return update(profileRef, { 
+      level: newLevel,
+      lastActive: new Date().toISOString()
+    });
+  }
+}
+
+// ---- Tournament Auto-Cleanup ----
+
+export async function cleanupExpiredTournaments(): Promise<number> {
+  const snapshot = await get(ref(db, "tournaments"));
+  if (!snapshot.exists()) return 0;
+  
+  const tournaments = snapshot.val() as Record<string, Tournament>;
+  const now = new Date();
+  let deletedCount = 0;
+  
+  const deletePromises = Object.entries(tournaments).map(async ([id, tournament]) => {
+    const endDate = new Date(tournament.endDate);
+    if (endDate < now && (tournament.status === 'completed' || tournament.status === 'cancelled')) {
+      // Delete tournaments that ended more than 7 days ago
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      if (endDate < sevenDaysAgo) {
+        await deleteRecord(`tournaments/${id}`);
+        deletedCount++;
+      }
+    }
+  });
+  
+  await Promise.all(deletePromises);
+  return deletedCount;
+}
+
+export async function updateExpiredTournaments(): Promise<number> {
+  const snapshot = await get(ref(db, "tournaments"));
+  if (!snapshot.exists()) return 0;
+  
+  const tournaments = snapshot.val() as Record<string, Tournament>;
+  const now = new Date();
+  let updatedCount = 0;
+  
+  const updatePromises = Object.entries(tournaments).map(async ([id, tournament]) => {
+    const endDate = new Date(tournament.endDate);
+    const startDate = new Date(tournament.startDate);
+    
+    // Auto-update tournament status based on dates
+    let newStatus = tournament.status;
+    
+    if (now < startDate && tournament.status === 'upcoming') {
+      // Tournament hasn't started yet - keep as upcoming
+      newStatus = 'upcoming';
+    } else if (now >= startDate && now <= endDate && tournament.status === 'upcoming') {
+      // Tournament is currently ongoing
+      newStatus = 'ongoing';
+      updatedCount++;
+    } else if (now > endDate && tournament.status === 'ongoing') {
+      // Tournament has ended
+      newStatus = 'completed';
+      updatedCount++;
+    }
+    
+    if (newStatus !== tournament.status) {
+      await updateRecord(`tournaments/${id}`, { 
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+    }
+  });
+  
+  await Promise.all(updatePromises);
+  return updatedCount;
+}
+
+// Setup automatic cleanup (run every hour)
+export function setupTournamentCleanup(): () => void {
+  const cleanupInterval = setInterval(async () => {
+    try {
+      const updated = await updateExpiredTournaments();
+      const deleted = await cleanupExpiredTournaments();
+      
+      if (updated > 0 || deleted > 0) {
+        console.log(`Tournament cleanup: ${updated} updated, ${deleted} deleted`);
+      }
+    } catch (error) {
+      console.error('Tournament cleanup error:', error);
+    }
+  }, 60 * 60 * 1000); // Run every hour
+  
+  return () => clearInterval(cleanupInterval);
 }

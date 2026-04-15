@@ -1,10 +1,24 @@
 import emailjs from '@emailjs/browser';
 
-// Initialize EmailJS with your service credentials
-// You'll need to create an account at https://www.emailjs.com/ and get these values
-const EMAILJS_SERVICE_ID = 'service_8oc5o66'; // Your EmailJS Service ID
-const EMAILJS_TEMPLATE_ID = 'template_njys0y8'; // Your EmailJS Template ID
-const EMAILJS_PUBLIC_KEY = 'jHzIeHYnyKVZb5zPF'; // Your EmailJS Public Key
+// Validate required EmailJS environment variables
+// Temporarily commented for testing
+/*
+const requiredEmailEnvVars = [
+  'VITE_EMAILJS_PUBLIC_KEY',
+  'VITE_EMAILJS_SERVICE_ID',
+  'VITE_EMAILJS_TEMPLATE_ID'
+];
+
+const missingEmailEnvVars = requiredEmailEnvVars.filter(envVar => !import.meta.env[envVar]);
+if (missingEmailEnvVars.length > 0) {
+  throw new Error(`Missing required EmailJS environment variables: ${missingEmailEnvVars.join(', ')}. Please check your .env.local file.`);
+}
+*/
+
+// Initialize EmailJS with environment variables
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_8oc5o66';
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_njys0y8';
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'jHzIeHYnyKVZb5zPF';
 
 // Initialize EmailJS
 emailjs.init(EMAILJS_PUBLIC_KEY);

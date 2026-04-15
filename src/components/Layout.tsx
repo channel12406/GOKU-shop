@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Phone, Trophy, LogOut, UserPlus, Mail } from "lucide-react";
+import { Menu, X, Phone, Trophy, LogOut, User, UserPlus, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLongPress } from "@/hooks/useLongPress";
 import { auth } from "@/lib/firebase";
@@ -94,17 +94,15 @@ function Navbar() {
             </Link>
           )}
           {currentUser ? (
-            <>
-              <span className="text-xs text-muted-foreground">
-                {currentUser.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary border border-border text-sm font-medium hover:bg-destructive/10 hover:text-destructive transition-colors"
-              >
-                <LogOut className="w-4 h-4" /> Sign Out
-              </button>
-            </>
+            <Link
+              to="/profile"
+              className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
+                location.pathname === "/profile" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <User className="w-4 h-4" />
+              Profil
+            </Link>
           ) : (
             <div className="relative">
               <button

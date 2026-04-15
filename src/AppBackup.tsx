@@ -16,7 +16,7 @@ import Recharge from "./pages/Recharge";
 import Payment from "./pages/Payment";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import Profile from "./pages/ProfilePro";
+import Profile from "./pages/ProfileSimple";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

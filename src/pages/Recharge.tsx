@@ -485,7 +485,7 @@ export default function RechargePage() {
         <OrderForm
           productName={currentOrder.name}
           price={currentOrder.price}
-          gameType="freefire"
+          gameType={selectedGame}
           onClose={() => setShowOrderForm(false)}
         />
       )}

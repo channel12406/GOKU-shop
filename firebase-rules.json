@@ -1,0 +1,70 @@
+{
+  "rules": {
+    "orders": {
+      ".read": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".write": "auth != null",
+      ".validate": "newData.hasChildren(['productName', 'price', 'quantity', 'createdAt', 'status']) && newData.child('productName').isString() && newData.child('price').isString() && newData.child('quantity').isNumber() && newData.child('status').isString() && ['pending', 'confirmed', 'completed', 'cancelled'].contains(newData.child('status').val()) && newData.child('createdAt').isString() && newData.child('price').val().matches(/^\\\\d+$/) && newData.child('quantity').val() > 0"
+    },
+    "contacts": {
+      ".read": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".write": "newData.hasChildren(['name', 'email', 'service', 'message', 'createdAt', 'read']) && newData.child('name').isString() && newData.child('email').isString() && newData.child('email').val().matches(/^[^@]+@[^@]+\\\\.[^@]+$/) && newData.child('service').isString() && newData.child('message').isString() && newData.child('createdAt').isString() && newData.child('read').isBoolean() && newData.child('name').val().length > 2 && newData.child('message').val().length > 10"
+    },
+    "products": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".validate": "newData.hasChildren(['name', 'desc', 'price', 'category', 'createdAt']) && newData.child('name').isString() && newData.child('desc').isString() && newData.child('price').isString() && newData.child('category').isString() && newData.child('createdAt').isString() && newData.child('name').val().length > 2 && newData.child('price').val().matches(/^\\\\d+$/)"
+    },
+    "tournaments": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".validate": "newData.hasChildren(['name', 'game', 'description', 'startDate', 'endDate', 'maxParticipants', 'entryFee', 'prizePool', 'status', 'createdAt']) && newData.child('name').isString() && newData.child('game').isString() && newData.child('description').isString() && newData.child('startDate').isString() && newData.child('endDate').isString() && newData.child('maxParticipants').isNumber() && newData.child('entryFee').isString() && newData.child('prizePool').isString() && newData.child('status').isString() && newData.child('createdAt').isString() && ['upcoming', 'ongoing', 'completed', 'cancelled'].contains(newData.child('status').val()) && newData.child('maxParticipants').val() > 0"
+    },
+    "tournamentApplications": {
+      ".read": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".write": "newData.hasChildren(['tournamentId', 'userId', 'userName', 'userEmail', 'userPhone', 'appliedAt', 'status']) && newData.child('tournamentId').isString() && newData.child('userId').isString() && newData.child('userName').isString() && newData.child('userEmail').isString() && newData.child('userEmail').val().matches(/^[^@]+@[^@]+\\\\.[^@]+$/) && newData.child('userPhone').isString() && newData.child('userPhone').val().matches(/^[0-9+\\\\s]{8,15}$/) && newData.child('appliedAt').isString() && newData.child('status').isString() && ['pending', 'approved', 'rejected'].contains(newData.child('status').val()) && newData.child('userName').val().length > 2"
+    },
+    "promoCodes": {
+      ".read": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".write": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".validate": "newData.hasChildren(['code', 'title', 'subtitle', 'discount', 'endDate', 'isActive', 'createdAt', 'usageCount']) && newData.child('code').isString() && newData.child('title').isString() && newData.child('subtitle').isString() && newData.child('discount').isNumber() && newData.child('endDate').isString() && newData.child('isActive').isBoolean() && newData.child('createdAt').isString() && newData.child('usageCount').isNumber() && newData.child('discount').val() >= 0 && newData.child('discount').val() <= 100 && newData.child('code').val().length >= 3"
+    },
+    "affiliateCodes": {
+      ".read": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".write": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".validate": "newData.hasChildren(['code', 'userId', 'username', 'discountPercentage', 'isActive', 'createdAt', 'usageCount']) && newData.child('code').isString() && newData.child('userId').isString() && newData.child('username').isString() && newData.child('discountPercentage').isNumber() && newData.child('isActive').isBoolean() && newData.child('createdAt').isString() && newData.child('usageCount').isNumber() && newData.child('discountPercentage').val() >= 0 && newData.child('discountPercentage').val() <= 50 && newData.child('code').val().length >= 3"
+    },
+    "newsletter": {
+      ".read": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".write": "newData.hasChildren(['email', 'subscribedAt']) && newData.child('email').isString() && newData.child('email').val().matches(/^[^@]+@[^@]+\\\\.[^@]+$/) && newData.child('subscribedAt').isString()"
+    },
+    "testimonials": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".validate": "newData.hasChildren(['name', 'role', 'company', 'content', 'rating', 'approved', 'createdAt']) && newData.child('name').isString() && newData.child('role').isString() && newData.child('company').isString() && newData.child('content').isString() && newData.child('rating').isNumber() && newData.child('approved').isBoolean() && newData.child('createdAt').isString() && newData.child('rating').val() >= 1 && newData.child('rating').val() <= 5 && newData.child('content').val().length > 10"
+    },
+    "portfolio": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".validate": "newData.hasChildren(['title', 'description', 'category', 'images', 'createdAt']) && newData.child('title').isString() && newData.child('description').isString() && newData.child('category').isString() && newData.child('images').isList() && newData.child('createdAt').isString() && newData.child('title').val().length > 2 && newData.child('description').val().length > 10"
+    },
+    "downloadCodes": {
+      ".read": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".write": "auth != null && auth.token.email === 'admin@gokushop.bj'",
+      ".validate": "newData.hasChildren(['code', 'fileName', 'filePath', 'isUsed', 'createdAt']) && newData.child('code').isString() && newData.child('fileName').isString() && newData.child('filePath').isString() && newData.child('isUsed').isBoolean() && newData.child('createdAt').isString() && newData.child('code').val().length >= 5"
+    },
+    "users": {
+      ".read": "auth != null && (auth.uid === data.child('uid').val() || auth.token.email === 'admin@gokushop.bj')",
+      ".write": "auth != null && (auth.uid === data.child('uid').val() || auth.token.email === 'admin@gokushop.bj')",
+      ".validate": "newData.hasChildren(['uid', 'email', 'username', 'totalOrders', 'totalSpent', 'tournamentParticipations', 'tournamentWins', 'level', 'experience', 'isVerified', 'isPremium', 'joinDate', 'lastActive']) && newData.child('uid').isString() && newData.child('email').isString() && newData.child('email').val().matches(/^[^@]+@[^@]+\\.[^@]+$/) && newData.child('username').isString() && newData.child('username').val().length >= 2 && newData.child('totalOrders').isNumber() && newData.child('totalSpent').isNumber() && newData.child('tournamentParticipations').isNumber() && newData.child('tournamentWins').isNumber() && newData.child('level').isNumber() && newData.child('level').val() >= 1 && newData.child('experience').isNumber() && newData.child('experience').val() >= 0 && newData.child('isVerified').isBoolean() && newData.child('isPremium').isBoolean() && newData.child('joinDate').isString() && newData.child('lastActive').isString()"
+    },
+    "userProfiles": {
+      ".read": "auth != null && (auth.uid === $key || auth.token.email === 'admin@gokushop.bj')",
+      ".write": "auth != null && (auth.uid === $key || auth.token.email === 'admin@gokushop.bj')",
+      ".validate": "newData.hasChildren(['displayName', 'userId', 'email', 'country', 'phone', 'bio', 'avatar']) && newData.child('displayName').isString() && newData.child('userId').isString() && newData.child('email').isString() && newData.child('email').val().matches(/^[^@]+@[^@]+\\.[^@]+$/) && newData.child('country').isString() && newData.child('phone').isString() && newData.child('bio').isString() && newData.child('avatar').isString()"
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

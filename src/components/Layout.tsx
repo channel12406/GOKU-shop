@@ -214,16 +214,28 @@ function Navbar() {
                 </Link>
               ))}
               {currentUser && (
-                <Link
-                  to="/tournaments"
-                  onClick={() => setOpen(false)}
-                  className={`text-sm font-medium py-2 px-3 rounded-lg transition-colors hover:bg-secondary hover:text-primary flex items-center gap-2 ${
-                    location.pathname === "/tournaments" ? "text-primary bg-primary/10" : "text-muted-foreground"
-                  }`}
-                >
-                  <Trophy className="w-4 h-4" />
-                  Tournois
-                </Link>
+                <>
+                  <Link
+                    to="/tournaments"
+                    onClick={() => setOpen(false)}
+                    className={`text-sm font-medium py-2 px-3 rounded-lg transition-colors hover:bg-secondary hover:text-primary flex items-center gap-2 ${
+                      location.pathname === "/tournaments" ? "text-primary bg-primary/10" : "text-muted-foreground"
+                    }`}
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Tournois
+                  </Link>
+                  <Link
+                    to="/profile"
+                    onClick={() => setOpen(false)}
+                    className={`text-sm font-medium py-2 px-3 rounded-lg transition-colors hover:bg-secondary hover:text-primary flex items-center gap-2 ${
+                      location.pathname === "/profile" ? "text-primary bg-primary/10" : "text-muted-foreground"
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    Profil
+                  </Link>
+                </>
               )}
               {!currentUser && (
                 <div className="flex flex-col gap-2 pt-2 border-t border-border/50">

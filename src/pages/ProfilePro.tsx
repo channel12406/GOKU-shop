@@ -222,25 +222,25 @@ export default function ProfilePro() {
             subtitle="Gérez votre profil professionnel et vos informations" 
           />
 
-          <div className="max-w-5xl mx-auto mt-12">
+          <div className="max-w-5xl mx-auto mt-12 px-2 sm:px-4">
             {/* Carte principale du profil */}
             <div className="bg-gradient-to-br from-card to-card/80 rounded-3xl border border-border/50 shadow-2xl overflow-hidden">
               {/* Header avec email et bouton Sign Out */}
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 border-b border-border/30">
-                <div className="flex items-center justify-between">
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 sm:p-6 border-b border-border/30">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-sm text-muted-foreground">Statut: Actif</span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
                     <div className="flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full">
-                      <Mail className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-primary">{currentUser.email}</span>
-                      <Verified className="w-4 h-4 text-blue-500" />
+                      <Mail className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="text-sm font-medium text-primary truncate max-w-[150px] sm:max-w-none">{currentUser.email}</span>
+                      <Verified className="w-4 h-4 text-blue-500 flex-shrink-0" />
                     </div>
                     <button
                       onClick={handleSignOut}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-sm font-medium hover:bg-destructive/20 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-sm font-medium hover:bg-destructive/20 transition-colors w-full sm:w-auto justify-center"
                     >
                       <LogOut className="w-4 h-4" />
                       Déconnexion
@@ -249,13 +249,13 @@ export default function ProfilePro() {
                 </div>
               </div>
 
-              <div className="p-8">
+              <div className="p-4 sm:p-8">
                 {/* Section Avatar et infos principales */}
-                <div className="grid lg:grid-cols-3 gap-8 mb-8">
+                <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
                   {/* Avatar */}
-                  <div className="text-center">
+                  <div className="text-center lg:col-span-3 lg:col-span-1 order-1 lg:order-1">
                     <div className="relative inline-block mb-4">
-                      <div className={`w-32 h-32 ${selectedAvatar.color} rounded-2xl mx-auto mb-4 flex items-center justify-center text-6xl shadow-lg transform hover:scale-105 transition-transform`}>
+                      <div className={`w-24 h-24 sm:w-32 sm:h-32 ${selectedAvatar.color} rounded-2xl mx-auto mb-4 flex items-center justify-center text-4xl sm:text-6xl shadow-lg transform hover:scale-105 transition-transform`}>
                         {selectedAvatar.emoji}
                       </div>
                       
@@ -268,27 +268,27 @@ export default function ProfilePro() {
                       )}
                     </div>
                     
-                    <h3 className="text-2xl font-bold mb-2">
+                    <h3 className="text-xl sm:text-2xl font-bold mb-2">
                       {formData.displayName || 'Utilisateur'}
                     </h3>
                     
                     <div className="flex items-center justify-center gap-2 mb-2">
-                      <Target className="w-5 h-5 text-yellow-500" />
-                      <span className="font-bold text-yellow-500">Niveau 1</span>
-                      <Sparkles className="w-4 h-4 text-yellow-400" />
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+                      <span className="font-bold text-yellow-500 text-sm sm:text-base">Niveau 1</span>
+                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
+                    <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>Membre depuis aujourd'hui</span>
                     </div>
                   </div>
 
                   {/* Formulaire d'édition */}
-                  <div className="lg:col-span-2">
+                  <div className="lg:col-span-3 lg:col-span-2 order-2 lg:order-2">
                     {isEditing ? (
                       <div className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                               <User className="w-4 h-4" />
@@ -451,7 +451,7 @@ export default function ProfilePro() {
                       <Sparkles className="w-5 h-5 text-yellow-500" />
                       Choisissez votre avatar professionnel
                     </h4>
-                    <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-3">
                       {PROFESSIONAL_AVATARS.map((avatar) => (
                         <button
                           key={avatar.id}
@@ -462,7 +462,7 @@ export default function ProfilePro() {
                               : 'hover:scale-105'
                           }`}
                         >
-                          <div className={`w-16 h-16 ${avatar.color} rounded-xl flex items-center justify-center text-2xl shadow-md group-hover:shadow-lg transition-shadow`}>
+                          <div className={`w-12 h-12 sm:w-16 sm:h-16 ${avatar.color} rounded-xl flex items-center justify-center text-xl sm:text-2xl shadow-md group-hover:shadow-lg transition-shadow`}>
                             {avatar.emoji}
                           </div>
                           {selectedAvatar.id === avatar.id && (
@@ -477,7 +477,7 @@ export default function ProfilePro() {
                 )}
 
                 {/* Statistiques */}
-                <div className="grid md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
                   <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl border border-blue-200 dark:border-blue-800">
                     <ShoppingBag className="w-10 h-10 text-blue-600 mx-auto mb-3" />
                     <div className="text-3xl font-bold text-blue-600">0</div>

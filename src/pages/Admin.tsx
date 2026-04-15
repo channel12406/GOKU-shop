@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, Package, MessageSquare, BarChart3, Trash2, Eye, CheckCircle, XCircle, Plus, Send, Megaphone, X, Trophy, Users, Percent } from "lucide-react";
+import { LogOut, Package, MessageSquare, BarChart3, Trash2, Eye, CheckCircle, XCircle, Plus, Send, Megaphone, X, Trophy, Users, Percent, User as UserIcon, Shield, Calendar, MapPin, Phone, Mail, Crown } from "lucide-react";
 import Layout from "@/components/Layout";
 import {
   adminLogin, adminLogout, onAuthChange,
@@ -25,7 +25,7 @@ interface Testimonial {
   approved: boolean;
 }
 
-type Tab = "stats" | "orders" | "contacts" | "testimonials" | "newsletter" | "promo" | "downloadCodes" | "tournaments" | "affiliations";
+type Tab = "stats" | "orders" | "contacts" | "testimonials" | "newsletter" | "promo" | "downloadCodes" | "tournaments" | "affiliations" | "userProfiles";
 
 interface PortfolioForm {
   title: string;
@@ -49,6 +49,38 @@ interface PromoConfig {
   endDate: string;
   isActive: boolean;
   createdAt: string;
+}
+
+interface UserProfile {
+  displayName: string;
+  userId: string;
+  email: string;
+  country: string;
+  phone: string;
+  bio: string;
+  avatar: {
+    id: number;
+    emoji: string;
+    name: string;
+    color: string;
+  };
+  totalOrders: number;
+  totalSpent: number;
+  tournamentParticipations: number;
+  tournamentWins: number;
+  level: number;
+  experience: number;
+  isVerified: boolean;
+  isPremium: boolean;
+  joinDate: string;
+  updatedAt: string;
+  lastActive: string;
+  stats: {
+    gamesPlayed: number;
+    winRate: number;
+    favoriteGame: string;
+    totalPlayTime: number;
+  };
 }
 
 function AdminLogin({ onLogin }: { onLogin: () => void }) {
@@ -586,6 +618,7 @@ export default function Admin() {
   const [downloadCodes, setDownloadCodes] = useState<(DownloadCode & { id: string })[]>([]);
   const [tournaments, setTournaments] = useState<(Tournament & { id: string })[]>([]);
   const [affiliateCodes, setAffiliateCodes] = useState<(AffiliateCode & { id: string })[]>([]);
+  const [userProfiles, setUserProfiles] = useState<(UserProfile & { id: string })[]>([]);
   const [expandedImage, setExpandedImage] = useState<{src: string, alt: string} | null>(null);
   
   // Pour l'envoi de newsletter
@@ -628,7 +661,8 @@ export default function Admin() {
     const unsub5 = subscribeToRecords<PromoConfig>("promos", setPromos);
     const unsub6 = subscribeToRecords<DownloadCode>("downloadCodes", setDownloadCodes);
     const unsub7 = subscribeToRecords<Tournament>("tournaments", setTournaments);
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7(); };
+    const unsub8 = subscribeToRecords<UserProfile>("userProfiles", setUserProfiles);
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7(); unsub8(); };
   }, [user]);
 
   if (user === undefined) {
@@ -762,6 +796,7 @@ export default function Admin() {
     { key: "downloadCodes", label: "Codes Téléchargement", icon: Package },
     { key: "tournaments", label: "Tournois", icon: Trophy },
     { key: "affiliations", label: "Affiliations", icon: Percent },
+    { key: "userProfiles", label: "Profils Utilisateurs", icon: UserIcon },
   ];
 
   const pendingOrders = orders.filter((o) => o.status === "pending").length;
@@ -1402,6 +1437,115 @@ export default function Admin() {
                         <button onClick={() => deleteRecord(`tournaments/${t.id}`)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* User Profiles */}
+          {tab === "userProfiles" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+                  <UserIcon className="w-5 h-5" />
+                  Profils Utilisateurs ({userProfiles.length})
+                </h2>
+              </div>
+              
+              <div className="grid gap-4">
+                {userProfiles.map((profile) => (
+                  <div key={profile.id} className="bg-gradient-card rounded-xl p-6 border border-border/50 shadow-card">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                      <div className="flex-1">
+                        {/* Header du profil */}
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className={`w-16 h-16 ${profile.avatar.color} rounded-xl flex items-center justify-center text-2xl shadow-lg`}>
+                            {profile.avatar.emoji}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-bold text-lg text-foreground">{profile.displayName}</h3>
+                              {profile.isVerified && (
+                                <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                  <Shield className="w-3 h-3" />
+                                  Vérifié
+                                </div>
+                              )}
+                              {profile.isPremium && (
+                                <div className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                  <Crown className="w-3 h-3" />
+                                  Premium
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mail className="w-4 h-4" />
+                              <span>{profile.email}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                              <UserIcon className="w-4 h-4" />
+                              <span>ID: {profile.userId}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Informations personnelles */}
+                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Pays:</span>
+                              <span className="font-medium">{profile.country || 'Non renseigné'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Phone className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Téléphone:</span>
+                              <span className="font-medium">{profile.phone || 'Non renseigné'}</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Inscription:</span>
+                              <span className="font-medium">{new Date(profile.joinDate).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Dernière activité:</span>
+                              <span className="font-medium">{new Date(profile.lastActive).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {profile.bio && (
+                          <div className="mb-4">
+                            <p className="text-sm text-muted-foreground mb-1">Bio:</p>
+                            <p className="text-sm">{profile.bio}</p>
+                          </div>
+                        )}
+                        
+                        {/* Statistiques */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                            <div className="text-lg font-bold text-primary">{profile.totalOrders}</div>
+                            <div className="text-xs text-muted-foreground">Commandes</div>
+                          </div>
+                          <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                            <div className="text-lg font-bold text-primary">{profile.totalSpent}F</div>
+                            <div className="text-xs text-muted-foreground">Dépensé</div>
+                          </div>
+                          <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                            <div className="text-lg font-bold text-primary">{profile.tournamentParticipations}</div>
+                            <div className="text-xs text-muted-foreground">Tournois</div>
+                          </div>
+                          <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                            <div className="text-lg font-bold text-primary">{profile.tournamentWins}</div>
+                            <div className="text-xs text-muted-foreground">Victoires</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

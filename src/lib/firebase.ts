@@ -113,48 +113,61 @@ function validateContactMessage(msg: Omit<ContactMessage, "id">): ValidationResu
 }
 
 function validateTournament(tournament: Omit<Tournament, "id" | "createdAt">): ValidationResult {
+  console.log("🔍 Début validation du tournoi:", tournament);
   const errors: string[] = [];
 
   if (!tournament.name || tournament.name.trim().length < 2) {
+    console.log("❌ Nom invalide:", tournament.name);
     errors.push('Tournament name must be at least 2 characters');
   }
 
   if (!tournament.game || tournament.game.trim().length < 2) {
+    console.log("❌ Jeu invalide:", tournament.game);
     errors.push('Game must be specified');
   }
 
   if (!tournament.description || tournament.description.trim().length < 10) {
+    console.log("❌ Description invalide:", tournament.description?.length);
     errors.push('Description must be at least 10 characters');
   }
 
   if (!tournament.startDate) {
+    console.log("❌ Date de début manquante");
     errors.push('Start date is required');
   }
 
   if (!tournament.endDate) {
+    console.log("❌ Date de fin manquante");
     errors.push('End date is required');
   }
 
   if (!tournament.maxParticipants || tournament.maxParticipants <= 0) {
+    console.log("❌ Nombre de participants invalide:", tournament.maxParticipants);
     errors.push('Max participants must be greater than 0');
   }
 
-  if (!tournament.entryFee || !/^\d+$/.test(tournament.entryFee)) {
-    errors.push('Entry fee must be a valid number');
+  if (!tournament.entryFee || !/^\d[\d\s]*\s*FCFA?$/.test(tournament.entryFee.trim())) {
+    console.log("❌ Frais d'inscription invalide:", tournament.entryFee);
+    errors.push('Entry fee must be a valid number (e.g., "5000 FCFA")');
   }
 
-  if (!tournament.prizePool || !/^\d+$/.test(tournament.prizePool)) {
-    errors.push('Prize pool must be a valid number');
+  if (!tournament.prizePool || tournament.prizePool.trim().length < 3) {
+    console.log("❌ Récompenses invalides:", tournament.prizePool);
+    errors.push('Prize pool must be specified (e.g., "50 000 FCFA", "1000 Diamants", "Booyah Pass")');
   }
 
   if (!tournament.status || !['upcoming', 'ongoing', 'completed', 'cancelled'].includes(tournament.status)) {
+    console.log("❌ Statut invalide:", tournament.status);
     errors.push('Status must be one of: upcoming, ongoing, completed, cancelled');
   }
 
-  return {
+  const result = {
     isValid: errors.length === 0,
     errors
   };
+  
+  console.log("📊 Résultat validation:", result);
+  return result;
 }
 
 // ── Database helpers ──
@@ -272,6 +285,7 @@ export interface TournamentApplication {
   userEmail: string;
   userPhone: string;
   country?: string;
+  gameUserId?: string; // ID de jeu du participant
   teamName?: string;
   message?: string;
   status: "pending" | "approved" | "rejected";
@@ -310,6 +324,7 @@ export interface UserProfile {
   email: string;
   username: string;
   displayName?: string;
+  gameUserId?: string; // ID de jeu personnalisé
   avatar?: string;
   phone?: string;
   country?: string;
@@ -385,17 +400,35 @@ export async function addTestimonial(testimonial: Omit<Testimonial, "id" | "appr
 }
 
 export async function addTournament(tournament: Omit<Tournament, "id" | "createdAt">) {
+  console.log("🔥 addTournament appelé avec:", tournament);
+  
   // Server-side validation
   const tournamentValidation = validateTournament(tournament);
+  console.log("📋 Validation:", tournamentValidation);
+  
   if (!tournamentValidation.isValid) {
+    console.error("❌ Validation échouée:", tournamentValidation.errors);
     throw new Error(`Invalid tournament data: ${tournamentValidation.errors.join(', ')}`);
   }
 
+  console.log("✅ Validation réussie, envoi à Firebase...");
   const tournamentsRef = ref(db, "tournaments");
-  return push(tournamentsRef, {
+  
+  const tournamentWithTimestamp = {
     ...tournament,
     createdAt: new Date().toISOString()
-  });
+  };
+  
+  console.log("📤 Données finales à envoyer:", tournamentWithTimestamp);
+  
+  try {
+    const result = push(tournamentsRef, tournamentWithTimestamp);
+    console.log("🎉 Push Firebase réussi:", result);
+    return result;
+  } catch (firebaseError) {
+    console.error("💥 Erreur Firebase:", firebaseError);
+    throw firebaseError;
+  }
 }
 
 export async function addTournamentApplication(application: Omit<TournamentApplication, "id">) {

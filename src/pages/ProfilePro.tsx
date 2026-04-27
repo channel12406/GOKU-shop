@@ -79,7 +79,7 @@ export default function ProfilePro() {
   const [selectedAvatar, setSelectedAvatar] = useState(PROFESSIONAL_AVATARS[0]);
   const [formData, setFormData] = useState({
     displayName: '',
-    userId: '',
+    gameUserId: '', // ID de jeu personnalisé
     country: '',
     phone: '',
     bio: ''
@@ -97,7 +97,7 @@ export default function ProfilePro() {
         if (savedProfile) {
           setFormData({
             displayName: savedProfile.displayName || user.displayName || '',
-            userId: user.uid || '',
+            gameUserId: savedProfile.gameUserId || '',
             country: savedProfile.country || '',
             phone: savedProfile.phone || '',
             bio: savedProfile.bio || ''
@@ -112,7 +112,7 @@ export default function ProfilePro() {
           // Créer un profil par défaut
           setFormData({
             displayName: user.displayName || '',
-            userId: user.uid || '',
+            gameUserId: '',
             country: '',
             phone: '',
             bio: ''
@@ -305,16 +305,17 @@ export default function ProfilePro() {
                           
                           <div>
                             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                              <Lock className="w-4 h-4" />
-                              ID Utilisateur
+                              <Gamepad2 className="w-4 h-4" />
+                              ID de Jeu
                             </label>
                             <input
                               type="text"
-                              value={formData.userId}
-                              disabled
-                              className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-muted-foreground cursor-not-allowed font-mono text-sm"
-                              placeholder="ID automatique"
+                              value={formData.gameUserId}
+                              onChange={(e) => setFormData({ ...formData, gameUserId: e.target.value })}
+                              className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono text-sm"
+                              placeholder="Ex: Player123, Gamer456..."
                             />
+                            <p className="text-xs text-muted-foreground mt-1">Votre ID personnel dans les jeux (Free Fire, COD, PUBG, etc.)</p>
                           </div>
                           
                           <div>
@@ -387,12 +388,24 @@ export default function ProfilePro() {
                           
                           <div className="p-4 bg-secondary/30 rounded-xl">
                             <label className="block text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
-                              <Lock className="w-4 h-4" />
-                              ID Utilisateur
+                              <Gamepad2 className="w-4 h-4" />
+                              ID de Jeu
                             </label>
                             <div className="text-lg font-mono text-sm">
-                              {formData.userId || 'Non disponible'}
+                              {formData.gameUserId || 'Non renseigné'}
                             </div>
+                            <p className="text-xs text-muted-foreground mt-1">ID utilisé pour les identifications dans les jeux</p>
+                          </div>
+                          
+                          <div className="p-4 bg-muted/20 rounded-xl border border-dashed border-border/30">
+                            <label className="block text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
+                              <Lock className="w-4 h-4" />
+                              ID Système
+                            </label>
+                            <div className="text-xs font-mono text-muted-foreground break-all">
+                              {currentUser?.uid || 'Non disponible'}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">ID interne du système (non modifiable)</p>
                           </div>
                           
                           <div className="p-4 bg-secondary/30 rounded-xl">

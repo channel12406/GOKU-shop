@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, Package, MessageSquare, BarChart3, Trash2, Eye, CheckCircle, XCircle, Plus, Send, Megaphone, X, Trophy, Users, Percent, User as UserIcon, Shield, Calendar, MapPin, Phone, Mail, Crown } from "lucide-react";
+import { LogOut, Package, MessageSquare, BarChart3, Trash2, Eye, CheckCircle, XCircle, Plus, Send, Megaphone, X, Trophy, Users, Percent, User as UserIcon, Shield, Calendar, MapPin, Phone, Mail, Crown, Gamepad2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import {
   adminLogin, adminLogout, onAuthChange,
@@ -25,7 +25,7 @@ interface Testimonial {
   approved: boolean;
 }
 
-type Tab = "stats" | "orders" | "contacts" | "testimonials" | "newsletter" | "promo" | "downloadCodes" | "tournaments" | "affiliations" | "userProfiles";
+type Tab = "stats" | "orders" | "contacts" | "testimonials" | "promo" | "tournaments" | "affiliations" | "userProfiles";
 
 interface PortfolioForm {
   title: string;
@@ -613,19 +613,13 @@ export default function Admin() {
   const [orders, setOrders] = useState<(Order & { id: string })[]>([]);
   const [contacts, setContacts] = useState<(ContactMessage & { id: string })[]>([]);
   const [testimonials, setTestimonials] = useState<(Testimonial & { id: string })[]>([]);
-  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [promos, setPromos] = useState<PromoConfig[]>([]);
-  const [downloadCodes, setDownloadCodes] = useState<(DownloadCode & { id: string })[]>([]);
   const [tournaments, setTournaments] = useState<(Tournament & { id: string })[]>([]);
   const [affiliateCodes, setAffiliateCodes] = useState<(AffiliateCode & { id: string })[]>([]);
   const [userProfiles, setUserProfiles] = useState<(UserProfile & { id: string })[]>([]);
   const [expandedImage, setExpandedImage] = useState<{src: string, alt: string} | null>(null);
   
-  // Pour l'envoi de newsletter
-  const [newsletterSubject, setNewsletterSubject] = useState("");
-  const [newsletterContent, setNewsletterContent] = useState("");
-  const [sending, setSending] = useState(false);
-  
+    
   // Pour la gestion de promo
   const [promoForm, setPromoForm] = useState<Omit<PromoConfig, 'id' | 'createdAt'>>({ 
     title: "", 
@@ -657,12 +651,10 @@ export default function Admin() {
     const unsub1 = subscribeToRecords<Order>("orders", setOrders);
     const unsub2 = subscribeToRecords<ContactMessage>("contacts", setContacts);
     const unsub3 = subscribeToRecords<Testimonial>("testimonials", setTestimonials);
-    const unsub4 = subscribeToRecords<NewsletterSubscriber>("newsletter", setSubscribers);
-    const unsub5 = subscribeToRecords<PromoConfig>("promos", setPromos);
-    const unsub6 = subscribeToRecords<DownloadCode>("downloadCodes", setDownloadCodes);
-    const unsub7 = subscribeToRecords<Tournament>("tournaments", setTournaments);
-    const unsub8 = subscribeToRecords<UserProfile>("userProfiles", setUserProfiles);
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7(); unsub8(); };
+    const unsub4 = subscribeToRecords<PromoConfig>("promos", setPromos);
+    const unsub5 = subscribeToRecords<Tournament>("tournaments", setTournaments);
+    const unsub6 = subscribeToRecords<UserProfile>("userProfiles", setUserProfiles);
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); };
   }, [user]);
 
   if (user === undefined) {
@@ -678,43 +670,7 @@ export default function Admin() {
     navigate("/");
   };
   
-  // Fonctions pour la newsletter
-  const handleSendNewsletter = async () => {
-    if (!newsletterSubject || !newsletterContent || subscribers.length === 0) return;
     
-    setSending(true);
-    try {
-      // Get all subscriber emails
-      const recipientEmails = subscribers.map(sub => sub.email);
-      
-      // Send the newsletter
-      const success = await sendNewsletter({
-        subject: newsletterSubject,
-        content: newsletterContent,
-        recipients: recipientEmails
-      });
-      
-      if (success) {
-        // Enregistrer l'envoi
-        await updateRecord(`newsletter_history/${Date.now()}`, {
-          subject: newsletterSubject,
-          content: newsletterContent,
-          sentAt: new Date().toISOString(),
-          recipientsCount: subscribers.length
-        });
-        
-        // Réinitialiser le formulaire
-        setNewsletterSubject("");
-        setNewsletterContent("");
-      }
-      
-    } catch (error) {
-      console.error("Erreur d'envoi:", error);
-    } finally {
-      setSending(false);
-    }
-  };
-  
   // Fonctions pour les promos
   const handleCreatePromo = async () => {
     if (!promoForm.title || !promoForm.code) return;
@@ -791,9 +747,7 @@ export default function Admin() {
     { key: "orders", label: "Commandes", icon: Package },
     { key: "contacts", label: "Messages", icon: MessageSquare },
     { key: "testimonials", label: "Témoignages", icon: MessageSquare },
-    { key: "newsletter", label: "Newsletter", icon: Send },
     { key: "promo", label: "Promotions", icon: Megaphone },
-    { key: "downloadCodes", label: "Codes Téléchargement", icon: Package },
     { key: "tournaments", label: "Tournois", icon: Trophy },
     { key: "affiliations", label: "Affiliations", icon: Percent },
     { key: "userProfiles", label: "Profils Utilisateurs", icon: UserIcon },
@@ -1104,138 +1058,6 @@ export default function Admin() {
             </div>
           )}
           
-          {/* Download Codes */}
-          {tab === "downloadCodes" && (
-            <div>
-              <AddDownloadCodeForm onAdd={() => {
-                // Force refresh by unsubscribing and resubscribing
-                const unsub = subscribeToRecords<DownloadCode>("downloadCodes", setDownloadCodes);
-                return unsub;
-              }} />
-              
-              <div className="space-y-3">
-                {downloadCodes.length === 0 && <p className="text-muted-foreground text-center py-12">Aucun code de téléchargement généré.</p>}
-                {downloadCodes.map((code) => (
-                  <div key={code.id} className="bg-gradient-card rounded-xl p-5 border border-border/50 shadow-card flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground">{code.fileName}</h3>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="text-xs font-mono bg-secondary px-2 py-1 rounded">{code.code}</span>
-                        <span className={`text-xs px-2 py-1 rounded ${code.isUsed ? 'bg-destructive/20 text-destructive' : 'bg-green-500/20 text-green-400'}`}>
-                          {code.isUsed ? 'Utilisé' : 'Disponible'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1 truncate max-w-md">{code.filePath}</p>
-                      {code.expiresAt && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Expire le: {new Date(code.expiresAt).toLocaleString()}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Créé le: {new Date(code.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <button onClick={() => deleteRecord(`downloadCodes/${code.id}`)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors self-start">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Newsletter */}
-          {tab === "newsletter" && (
-            <div className="space-y-6">
-              <div className="bg-gradient-card rounded-2xl p-6 border border-border/50 shadow-card">
-                <h3 className="font-display text-xl font-bold text-foreground mb-4">Envoyer une newsletter</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Sujet</label>
-                    <input
-                      type="text"
-                      value={newsletterSubject}
-                      onChange={(e) => setNewsletterSubject(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
-                      placeholder="Ex: Nouveaux services disponibles"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Contenu</label>
-                    <textarea
-                      value={newsletterContent}
-                      onChange={(e) => setNewsletterContent(e.target.value)}
-                      rows={6}
-                      className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
-                      placeholder="Bonjour, nous avons de nouvelles offres exceptionnelles pour vous..."
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Destinataires: <span className="font-semibold text-foreground">{subscribers.length} abonnés</span>
-                    </p>
-                    <button
-                      onClick={handleSendNewsletter}
-                      disabled={sending || !newsletterSubject || !newsletterContent}
-                      className="px-6 py-3 rounded-lg bg-gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {sending ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          Envoi en cours...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          Envoyer à tous
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  
-                  {sending && (
-                    <div className="text-center text-sm text-muted-foreground mt-2">
-                      Envoi des emails en cours... Cela peut prendre quelques minutes.
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="bg-gradient-card rounded-2xl p-6 border border-border/50 shadow-card">
-                <h3 className="font-display text-xl font-bold text-foreground mb-4">Abonnés ({subscribers.length})</h3>
-                
-                {subscribers.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">Aucun abonné pour le moment.</p>
-                ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {subscribers
-                      .sort((a, b) => b.subscribedAt.localeCompare(a.subscribedAt))
-                      .map((sub) => (
-                        <div key={sub.id} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-foreground">{sub.email}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Inscrit le: {new Date(sub.subscribedAt).toLocaleDateString('fr-FR')}
-                            </p>
-                          </div>
-                          <button 
-                            onClick={() => deleteRecord(`newsletter/${sub.id}`)}
-                            className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))
-                    }
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
           {/* Promotions */}
           {tab === "promo" && (
             <div className="space-y-6">
@@ -1410,7 +1232,7 @@ export default function Admin() {
                             <span className="font-semibold text-foreground">Frais:</span> {t.entryFee}
                           </div>
                           <div>
-                            <span className="font-semibold text-foreground">Cagnotte:</span> {t.prizePool}
+                            <span className="font-semibold text-foreground">Récompenses:</span> {t.prizePool}
                           </div>
                           <div>
                             <span className="font-semibold text-foreground">Début:</span> {new Date(t.startDate).toLocaleString('fr-FR')}
@@ -1486,8 +1308,8 @@ export default function Admin() {
                               <span>{profile.email}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                              <UserIcon className="w-4 h-4" />
-                              <span>ID: {profile.userId}</span>
+                              <Gamepad2 className="w-4 h-4" />
+                              <span>ID Jeu: {(profile as any).gameUserId || 'Non renseigné'}</span>
                             </div>
                           </div>
                         </div>

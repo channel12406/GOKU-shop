@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { Trophy, CheckCircle, XCircle, Trash2, Gamepad2 } from "lucide-react";
 import { subscribeToRecords, updateRecord, deleteRecord, addTournament, type Tournament, type TournamentApplication } from "@/lib/firebase";
 
 interface TournamentForm {
@@ -25,11 +25,12 @@ export function AddTournamentForm({ onAdd }: { onAdd: () => void }) {
     endDate: "",
     maxParticipants: 50,
     entryFee: "5000 FCFA",
-    prizePool: "50 000 FCFA",
+    prizePool: "1000 Diamants + 20 000 FCFA",
     status: "upcoming",
     image: "",
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const inputClass = "w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm";
   
@@ -38,7 +39,11 @@ export function AddTournamentForm({ onAdd }: { onAdd: () => void }) {
     setLoading(true);
     
     try {
-      await addTournament({
+      setError(null);
+      console.log("🚀 Début de la création du tournoi...");
+      console.log("Données du formulaire:", formData);
+      
+      const tournamentData = {
         name: formData.name,
         game: formData.game,
         description: formData.description,
@@ -49,7 +54,12 @@ export function AddTournamentForm({ onAdd }: { onAdd: () => void }) {
         prizePool: formData.prizePool,
         status: formData.status,
         image: formData.image || undefined,
-      });
+      };
+      
+      console.log("📤 Envoi des données à Firebase:", tournamentData);
+      
+      const result = await addTournament(tournamentData);
+      console.log("✅ Tournoi créé avec succès:", result);
       
       setFormData({
         name: "",
@@ -59,15 +69,20 @@ export function AddTournamentForm({ onAdd }: { onAdd: () => void }) {
         endDate: "",
         maxParticipants: 50,
         entryFee: "5000 FCFA",
-        prizePool: "50 000 FCFA",
+        prizePool: "1000 Diamants + 20 000 FCFA",
         status: "upcoming",
         image: "",
       });
       
+      console.log("🔄 Réinitialisation du formulaire");
       onAdd();
     } catch (error) {
-      console.error("Error adding tournament:", error);
+      console.error("❌ Erreur lors de la création du tournoi:", error);
+      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la création du tournoi";
+      setError(errorMessage);
+      console.log("📝 Message d'erreur défini:", errorMessage);
     } finally {
+      console.log("🏁 Fin du processus, setLoading(false)");
       setLoading(false);
     }
   };
@@ -80,6 +95,12 @@ export function AddTournamentForm({ onAdd }: { onAdd: () => void }) {
       className="bg-gradient-card rounded-2xl p-6 border border-border/50 shadow-card mb-8"
     >
       <h3 className="font-display text-xl font-bold text-foreground mb-6">Créer un nouveau tournoi</h3>
+      
+      {error && (
+        <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+          {error}
+        </div>
+      )}
       
       <div className="grid md:grid-cols-2 gap-4">
         <div>
@@ -158,15 +179,16 @@ export function AddTournamentForm({ onAdd }: { onAdd: () => void }) {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Cagnotte (Prix)</label>
+          <label className="block text-sm font-medium text-foreground mb-2">Récompenses</label>
           <input
             type="text"
             value={formData.prizePool}
             onChange={(e) => setFormData(prev => ({ ...prev, prizePool: e.target.value }))}
             className={inputClass}
-            placeholder="Ex: 50 000 FCFA"
+            placeholder="Ex: 50 000 FCFA, 1000 Diamants, Booyah Pass, 500 UC..."
             required
           />
+          <p className="text-xs text-muted-foreground mt-1">Mentionnez toutes les récompenses possibles</p>
         </div>
         
         <div>
@@ -258,6 +280,12 @@ export function TournamentApplicationsManager({ tournamentId }: { tournamentId: 
                 <div className="flex-1">
                   <p className="font-medium text-foreground">{app.userName}</p>
                   <p className="text-muted-foreground">{app.userEmail}</p>
+                  {app.gameUserId && (
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Gamepad2 className="w-3 h-3" />
+                      <span>ID Jeu: {app.gameUserId}</span>
+                    </div>
+                  )}
                   {app.teamName && <p className="text-muted-foreground">Équipe: {app.teamName}</p>}
                   <p className="text-muted-foreground mt-1">{new Date(app.appliedAt).toLocaleString('fr-FR')}</p>
                 </div>

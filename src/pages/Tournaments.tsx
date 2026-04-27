@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Users, Calendar, MapPin, AlertCircle, Gamepad2, Clock, CheckCircle } from "lucide-react";
+import { Trophy, Users, Calendar, MapPin, AlertCircle, Gamepad2, Clock, CheckCircle, User } from "lucide-react";
 import Layout from "@/components/Layout";
 import SectionHeading from "@/components/SectionHeading";
 import TournamentRegistrationModal from "@/components/TournamentRegistrationModal";
 import { subscribeToRecords, addTournamentApplication, type Tournament, type TournamentApplication } from "@/lib/firebase";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getDatabase, ref, get } from "firebase/database";
 
 interface TournamentRegistration extends Tournament {
   id: string;
@@ -18,6 +20,9 @@ export default function Tournaments() {
   const [selectedTournament, setSelectedTournament] = useState<(Tournament & { id: string }) | null>(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
 
 
@@ -30,6 +35,32 @@ export default function Tournaments() {
     });
     
     return unsub;
+  }, []);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      
+      if (user) {
+        // Charger le profil utilisateur depuis Firebase
+        try {
+          const db = getDatabase();
+          const profileRef = ref(db, `userProfiles/${user.uid}`);
+          const snapshot = await get(profileRef);
+          
+          if (snapshot.exists()) {
+            setUserProfile(snapshot.val());
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du profil:', error);
+        }
+      }
+      
+      setLoading(false);
+    });
+
+    return () => unsubscribeAuth();
   }, []);
 
   useEffect(() => {
@@ -61,9 +92,58 @@ export default function Tournaments() {
     return unsub;
   }, []);
 
-  const handleRegister = (tournament: Tournament & { id: string }) => {
+  const handleRegister = async (tournament: Tournament & { id: string }) => {
     setSelectedTournament(tournament);
-    setShowRegistrationModal(true);
+    
+    // Si l'utilisateur a un profil complet, inscription directe
+    if (userProfile && userProfile.displayName && userProfile.gameUserId) {
+      try {
+        setLoading(true);
+        
+        const application = await addTournamentApplication({
+          tournamentId: tournament.id,
+          userId: currentUser.uid,
+          userName: userProfile.displayName,
+          userEmail: currentUser.email,
+          userPhone: userProfile.phone || '',
+          country: userProfile.country || 'BJ',
+          gameUserId: userProfile.gameUserId,
+          status: "pending",
+          appliedAt: new Date().toISOString()
+        });
+
+        // Sauvegarder l'application dans localStorage pour le suivi
+        const storedApplications = localStorage.getItem('userTournamentApplications');
+        const applications = storedApplications ? JSON.parse(storedApplications) : [];
+        
+        const newApplication = {
+          id: application.key,
+          tournamentId: tournament.id,
+          userId: currentUser.uid,
+          userName: userProfile.displayName,
+          userEmail: currentUser.email,
+          userPhone: userProfile.phone || '',
+          country: userProfile.country || 'BJ',
+          gameUserId: userProfile.gameUserId,
+          status: "pending" as const,
+          appliedAt: new Date().toISOString()
+        };
+        
+        applications.push(newApplication);
+        localStorage.setItem('userTournamentApplications', JSON.stringify(applications));
+        setUserApplications(applications);
+
+        handleRegistrationSuccess();
+      } catch (error) {
+        console.error("Erreur lors de l'inscription directe:", error);
+        alert("Une erreur est survenue. Veuillez réessayer.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Sinon, afficher le formulaire d'inscription
+      setShowRegistrationModal(true);
+    }
   };
 
   const handleRegistrationSuccess = () => {
@@ -113,9 +193,24 @@ export default function Tournaments() {
               <AlertCircle className="w-6 h-6 text-primary shrink-0 mt-1" />
               <div>
                 <h3 className="font-semibold text-foreground mb-2">Comment Participer</h3>
-                <p className="text-sm text-muted-foreground">
-                  Cliquez sur "S'inscrire" pour soumettre votre demande. L'administrateur examinera votre inscription et vous recevrez une réponse par email. En attente de validation, vous ne verrez plus les détails du tournoi.
+                <p className="text-sm text-muted-foreground mb-3">
+                  Cliquez sur "S'inscrire" pour participer aux tournois.
                 </p>
+                {userProfile && userProfile.displayName && userProfile.gameUserId ? (
+                  <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <User className="w-4 h-4 text-green-500" />
+                    <p className="text-sm text-green-400">
+                      <strong>Inscription rapide :</strong> Votre profil complet est détecté. Votre inscription sera envoyée directement avec vos informations.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-orange-500" />
+                    <p className="text-sm text-orange-400">
+                      <strong>Profil incomplet :</strong> Veuillez compléter votre profil (nom et ID de jeu) pour une inscription rapide.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -259,9 +354,23 @@ export default function Tournaments() {
                     
                     <button
                       onClick={() => handleRegister(tournament)}
-                      className="w-full py-3 rounded-lg bg-gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2"
+                      disabled={loading}
+                      className="w-full py-3 rounded-lg bg-gradient-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center justify-center gap-2"
                     >
-                      <Gamepad2 className="w-5 h-5" /> S'inscrire
+                      {loading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                          Inscription en cours...
+                        </>
+                      ) : userProfile && userProfile.displayName && userProfile.gameUserId ? (
+                        <>
+                          <User className="w-5 h-5" /> Inscription Rapide
+                        </>
+                      ) : (
+                        <>
+                          <Gamepad2 className="w-5 h-5" /> S'inscrire
+                        </>
+                      )}
                     </button>
                   </motion.div>
                 );

@@ -616,6 +616,13 @@ export async function getAffiliateCodeByCode(code: string): Promise<(AffiliateCo
       if (affiliate.expiresAt && new Date() > new Date(affiliate.expiresAt)) {
         continue; // Skip expired codes
       }
+      
+      // Check usage limit (4 utilisations maximum)
+      const currentUsage = affiliate.usageCount || 0;
+      if (currentUsage >= 4) {
+        continue; // Skip codes that have reached the usage limit
+      }
+      
       return affiliate as AffiliateCode & { id: string };
     }
   }
@@ -628,7 +635,16 @@ export async function incrementAffiliateCodeUsage(id: string) {
   if (!snapshot.exists()) return;
   
   const currentUsage = snapshot.val().usageCount || 0;
-  return update(affiliateRef, { usageCount: currentUsage + 1 });
+  const newUsageCount = currentUsage + 1;
+  
+  // Désactiver le code si la limite de 4 utilisations est atteinte
+  const updateData: any = { usageCount: newUsageCount };
+  if (newUsageCount >= 4) {
+    updateData.isActive = false;
+    console.log(`Code d'affiliation ${id} désactivé - limite de 4 utilisations atteinte`);
+  }
+  
+  return update(affiliateRef, updateData);
 }
 
 export async function getAllAffiliateCodes(): Promise<(AffiliateCode & { id: string })[]> {
@@ -716,13 +732,13 @@ export async function cleanupExpiredTournaments(): Promise<number> {
   
   const deletePromises = Object.entries(tournaments).map(async ([id, tournament]) => {
     const endDate = new Date(tournament.endDate);
-    if (endDate < now && (tournament.status === 'completed' || tournament.status === 'cancelled')) {
-      // Delete tournaments that ended more than 7 days ago
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      if (endDate < sevenDaysAgo) {
-        await deleteRecord(`tournaments/${id}`);
-        deletedCount++;
-      }
+    
+    // Supprimer immédiatement les tournois terminés depuis plus de 24h
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    if (endDate < oneDayAgo && (tournament.status === 'completed' || tournament.status === 'cancelled')) {
+      await deleteRecord(`tournaments/${id}`);
+      deletedCount++;
+      console.log(`Tournament ${id} (${tournament.name}) deleted - expired since ${endDate.toLocaleDateString()}`);
     }
   });
   

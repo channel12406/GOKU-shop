@@ -77,6 +77,7 @@ export default function ProfilePro() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(PROFESSIONAL_AVATARS[0]);
+  const [savedProfile, setSavedProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     displayName: '',
     gameUserId: '', // ID de jeu personnalisé
@@ -92,20 +93,21 @@ export default function ProfilePro() {
       setCurrentUser(user);
       if (user) {
         // Charger le profil depuis Firebase
-        const savedProfile = await loadUserProfile(user.uid);
+        const profile = await loadUserProfile(user.uid);
+        setSavedProfile(profile);
         
-        if (savedProfile) {
+        if (profile) {
           setFormData({
-            displayName: savedProfile.displayName || user.displayName || '',
-            gameUserId: savedProfile.gameUserId || '',
-            country: savedProfile.country || '',
-            phone: savedProfile.phone || '',
-            bio: savedProfile.bio || ''
+            displayName: profile.displayName || user.displayName || '',
+            gameUserId: profile.gameUserId || '',
+            country: profile.country || '',
+            phone: profile.phone || '',
+            bio: profile.bio || ''
           });
           
           // Restaurer l'avatar sélectionné
-          if (savedProfile.avatar) {
-            const avatar = PROFESSIONAL_AVATARS.find(a => a.id === savedProfile.avatar.id);
+          if (profile.avatar) {
+            const avatar = PROFESSIONAL_AVATARS.find(a => a.id === profile.avatar.id);
             if (avatar) setSelectedAvatar(avatar);
           }
         } else {
@@ -129,21 +131,40 @@ export default function ProfilePro() {
     if (!currentUser) return;
     
     setSaveLoading(true);
+    
     try {
+      // Vérifier si le profil a une date de dernière modification
+      if (savedProfile && savedProfile.lastProfileUpdate) {
+        const lastUpdate = new Date(savedProfile.lastProfileUpdate);
+        const now = new Date();
+        const daysSinceLastUpdate = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysSinceLastUpdate < 30) {
+          const daysRemaining = 30 - daysSinceLastUpdate;
+          alert(`Vous devez attendre encore ${daysRemaining} jour(s) avant de pouvoir modifier à nouveau votre profil.`);
+          setSaveLoading(false);
+          return;
+        }
+      }
+      
       const profileData = {
-        ...formData,
+        displayName: formData.displayName,
+        gameUserId: formData.gameUserId,
+        country: formData.country,
+        phone: formData.phone,
+        bio: formData.bio,
         avatar: selectedAvatar,
-        email: currentUser.email,
-        totalOrders: 0,
-        totalSpent: 0,
-        tournamentParticipations: 0,
-        tournamentWins: 0,
-        level: 1,
-        experience: 0,
-        isVerified: false,
-        isPremium: false,
-        joinDate: new Date().toISOString(),
-        stats: {
+        totalOrders: savedProfile?.totalOrders || 0,
+        totalSpent: savedProfile?.totalSpent || 0,
+        tournamentParticipations: savedProfile?.tournamentParticipations || 0,
+        tournamentWins: savedProfile?.tournamentWins || 0,
+        level: savedProfile?.level || 1,
+        experience: savedProfile?.experience || 0,
+        isVerified: savedProfile?.isVerified || false,
+        isPremium: savedProfile?.isPremium || false,
+        joinDate: savedProfile?.joinDate || new Date().toISOString(),
+        lastProfileUpdate: new Date().toISOString(), // Ajouter la date de modification
+        stats: savedProfile?.stats || {
           gamesPlayed: 0,
           winRate: 0,
           favoriteGame: '',
@@ -154,8 +175,11 @@ export default function ProfilePro() {
       const success = await saveUserProfile(currentUser.uid, profileData);
       if (success) {
         setIsEditing(false);
+        // Recharger le profil pour mettre à jour la date de modification
+        const updatedProfile = await loadUserProfile(currentUser.uid);
+        setSavedProfile(updatedProfile);
         // Afficher un message de succès
-        alert('Profil sauvegardé avec succès !');
+        alert('Profil sauvegardé avec succès ! Prochaine modification possible dans 30 jours.');
       } else {
         alert('Erreur lors de la sauvegarde du profil');
       }
@@ -169,6 +193,18 @@ export default function ProfilePro() {
 
   const handleAvatarSelect = (avatar: any) => {
     setSelectedAvatar(avatar);
+  };
+
+  const getDaysUntilNextUpdate = () => {
+    if (!savedProfile?.lastProfileUpdate) return null;
+    
+    const lastUpdate = new Date(savedProfile.lastProfileUpdate);
+    const now = new Date();
+    const daysSinceLastUpdate = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysSinceLastUpdate >= 30) return null; // Modification autorisée
+    
+    return 30 - daysSinceLastUpdate; // Jours restants
   };
 
   const handleSignOut = async () => {
@@ -397,17 +433,7 @@ export default function ProfilePro() {
                             <p className="text-xs text-muted-foreground mt-1">ID utilisé pour les identifications dans les jeux</p>
                           </div>
                           
-                          <div className="p-4 bg-muted/20 rounded-xl border border-dashed border-border/30">
-                            <label className="block text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
-                              <Lock className="w-4 h-4" />
-                              ID Système
-                            </label>
-                            <div className="text-xs font-mono text-muted-foreground break-all">
-                              {currentUser?.uid || 'Non disponible'}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">ID interne du système (non modifiable)</p>
-                          </div>
-                          
+                                                    
                           <div className="p-4 bg-secondary/30 rounded-xl">
                             <label className="block text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
@@ -546,13 +572,43 @@ export default function ProfilePro() {
                       </button>
                     </>
                   ) : (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="w-full py-4 px-6 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                    >
-                      <Edit2 className="w-5 h-5" />
-                      Modifier mon profil professionnel
-                    </button>
+                    <>
+                      {(() => {
+                        const daysRemaining = getDaysUntilNextUpdate();
+                        const isBlocked = daysRemaining !== null && daysRemaining > 0;
+                        
+                        return (
+                          <div className="space-y-3">
+                            {isBlocked && (
+                              <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                                <div className="flex items-center gap-3 text-orange-400">
+                                  <Lock className="w-5 h-5" />
+                                  <div>
+                                    <p className="font-medium">Modification temporairement limitée</p>
+                                    <p className="text-sm opacity-80">
+                                      Prochaine modification possible dans {daysRemaining} jour(s)
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <button
+                              onClick={() => setIsEditing(true)}
+                              disabled={isBlocked}
+                              className={`w-full py-4 px-6 rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02] ${
+                                isBlocked 
+                                  ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed opacity-50' 
+                                  : 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90'
+                              }`}
+                            >
+                              <Edit2 className="w-5 h-5" />
+                              {isBlocked ? 'Modification indisponible' : 'Modifier mon profil professionnel'}
+                            </button>
+                          </div>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
               </div>

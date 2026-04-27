@@ -15,6 +15,9 @@ interface OrderData {
   price: number;
   gameType: string;
   timestamp: string;
+  affiliateCode?: string | null;
+  discountAmount?: number;
+  finalPrice?: number;
 }
 
 const countries: Record<string, { name: string; flag: string; methods: {name: string; number: string; operator: string}[] }> = {
@@ -94,6 +97,10 @@ export default function Payment() {
 
   const calculateFinalPrice = () => {
     if (!orderData) return 0;
+    // Utiliser le prix final avec réduction d'affiliation si disponible, sinon calculer avec promo
+    if (orderData.finalPrice !== undefined) {
+      return orderData.finalPrice * (1 - discount / 100);
+    }
     return orderData.price * (1 - discount / 100);
   };
 
@@ -210,11 +217,19 @@ Merci de traiter cette commande!
                   </span>
                 </div>
                 
+                {/* Afficher les réductions d'affiliation si présentes */}
+                {orderData.affiliateCode && orderData.discountAmount && orderData.discountAmount > 0 && (
+                  <div className="flex justify-between items-center text-green-600">
+                    <span className="text-sm">Réduction affiliation ({orderData.affiliateCode})</span>
+                    <span className="font-medium">-{orderData.discountAmount.toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                )}
+                
                 <div className="border-t border-border pt-3 mt-3">
                   <div className="flex justify-between items-center text-lg">
                     <span className="font-medium text-foreground">Total</span>
                     <div className="text-right">
-                      {discount > 0 && (
+                      {(discount > 0 || (orderData.discountAmount && orderData.discountAmount > 0)) && (
                         <div className="text-sm text-muted-foreground line-through">
                           {orderData.price.toLocaleString('fr-FR')} FCFA
                         </div>

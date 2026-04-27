@@ -21,6 +21,7 @@ export default function ProfileComplete() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATARS[0]);
+  const [savedProfile, setSavedProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     displayName: '',
     userId: '',
@@ -33,11 +34,16 @@ export default function ProfileComplete() {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       if (user) {
+        // Charger le profil depuis localStorage
+        const savedProfileData = localStorage.getItem('userProfile');
+        const profile = savedProfileData ? JSON.parse(savedProfileData) : null;
+        setSavedProfile(profile);
+        
         setFormData({
-          displayName: user.displayName || '',
+          displayName: profile?.displayName || user.displayName || '',
           userId: user.uid || '',
-          country: '',
-          phone: ''
+          country: profile?.country || '',
+          phone: profile?.phone || ''
         });
       }
       setLoading(false);
@@ -47,9 +53,41 @@ export default function ProfileComplete() {
   }, []);
 
   const handleSaveProfile = () => {
-    // Simulation de sauvegarde
-    console.log('Profil sauvegardé:', formData);
+    // Vérifier la restriction de 30 jours
+    if (savedProfile && savedProfile.lastProfileUpdate) {
+      const lastUpdate = new Date(savedProfile.lastProfileUpdate);
+      const now = new Date();
+      const daysSinceLastUpdate = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysSinceLastUpdate < 30) {
+        const daysRemaining = 30 - daysSinceLastUpdate;
+        alert(`Vous devez attendre encore ${daysRemaining} jour(s) avant de pouvoir modifier à nouveau votre profil.`);
+        return;
+      }
+    }
+    
+    // Sauvegarder les données du profil avec la date de modification
+    const profileData = {
+      ...formData,
+      lastProfileUpdate: new Date().toISOString()
+    };
+    
+    localStorage.setItem('userProfile', JSON.stringify(profileData));
+    setSavedProfile(profileData);
     setIsEditing(false);
+    alert('Profil sauvegardé avec succès ! Prochaine modification possible dans 30 jours.');
+  };
+
+  const getDaysUntilNextUpdate = () => {
+    if (!savedProfile?.lastProfileUpdate) return null;
+    
+    const lastUpdate = new Date(savedProfile.lastProfileUpdate);
+    const now = new Date();
+    const daysSinceLastUpdate = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysSinceLastUpdate >= 30) return null; // Modification autorisée
+    
+    return 30 - daysSinceLastUpdate; // Jours restants
   };
 
   const handleAvatarSelect = (avatar: string) => {
@@ -188,17 +226,7 @@ export default function ProfileComplete() {
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium mb-2">ID Utilisateur</label>
-                      <input
-                        type="text"
-                        value={formData.userId}
-                        disabled
-                        className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-lg text-muted-foreground cursor-not-allowed"
-                        placeholder="ID automatique"
-                      />
-                    </div>
-                    
+                                        
                     <div>
                       <label className="block text-sm font-medium mb-2">Pays</label>
                       <select
@@ -242,13 +270,7 @@ export default function ProfileComplete() {
                       </div>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-muted-foreground">ID Utilisateur</label>
-                      <div className="px-4 py-3 bg-secondary/50 border border-border rounded-lg font-mono text-sm">
-                        {formData.userId || 'Non disponible'}
-                      </div>
-                    </div>
-                    
+                                        
                     <div>
                       <label className="block text-sm font-medium mb-2 text-muted-foreground">Pays</label>
                       <div className="px-4 py-3 bg-secondary/50 border border-border rounded-lg flex items-center gap-2">
@@ -321,13 +343,43 @@ export default function ProfileComplete() {
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="w-full py-3 px-6 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Modifier mon profil
-                  </button>
+                  <>
+                    {(() => {
+                      const daysRemaining = getDaysUntilNextUpdate();
+                      const isBlocked = daysRemaining !== null && daysRemaining > 0;
+                      
+                      return (
+                        <div className="space-y-3">
+                          {isBlocked && (
+                            <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                              <div className="flex items-center gap-3 text-orange-400">
+                                <Edit2 className="w-4 h-4" />
+                                <div>
+                                  <p className="font-medium text-sm">Modification limitée</p>
+                                  <p className="text-xs opacity-80">
+                                    Prochaine modification dans {daysRemaining} jour(s)
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <button
+                            onClick={() => setIsEditing(true)}
+                            disabled={isBlocked}
+                            className={`w-full py-3 px-6 rounded-lg font-medium transition-opacity flex items-center justify-center gap-2 ${
+                              isBlocked 
+                                ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed opacity-50' 
+                                : 'bg-primary text-primary-foreground hover:opacity-90'
+                            }`}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            {isBlocked ? 'Modification indisponible' : 'Modifier mon profil'}
+                          </button>
+                        </div>
+                      );
+                    })()}
+                  </>
                 )}
               </div>
             </div>

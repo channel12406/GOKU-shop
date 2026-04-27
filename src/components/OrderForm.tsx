@@ -108,6 +108,12 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
       const codeData = await getAffiliateCodeByCode(affiliateCode.toUpperCase());
       
       if (codeData) {
+        // Vérifier si le code est proche de la limite
+        const currentUsage = codeData.usageCount || 0;
+        if (currentUsage >= 3) {
+          setCodeError(`Attention : il ne reste que ${4 - currentUsage} utilisation(s) pour ce code`);
+        }
+        
         // Code valide
         const discountValue = (price * codeData.discountPercentage) / 100;
         setDiscountAmount(discountValue);
@@ -117,7 +123,25 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
         // Incrémenter l'utilisation du code
         await incrementAffiliateCodeUsage(codeData.id!);
       } else {
-        setCodeError("Code invalide ou expiré");
+        // Vérifier si le code existe mais a atteint sa limite
+        const { getAllAffiliateCodes } = await import("@/lib/firebase");
+        const allCodes = await getAllAffiliateCodes();
+        const existingCode = allCodes.find(c => c.code.toUpperCase() === affiliateCode.toUpperCase());
+        
+        if (existingCode) {
+          if (existingCode.usageCount >= 4) {
+            setCodeError("Ce code a atteint sa limite de 4 utilisations et n'est plus valide");
+          } else if (!existingCode.isActive) {
+            setCodeError("Ce code n'est plus actif");
+          } else if (existingCode.expiresAt && new Date() > new Date(existingCode.expiresAt)) {
+            setCodeError("Ce code est expiré");
+          } else {
+            setCodeError("Code invalide");
+          }
+        } else {
+          setCodeError("Code invalide ou expiré");
+        }
+        
         setDiscountAmount(0);
         setAppliedCode(null);
       }
@@ -144,6 +168,9 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
       price,
       gameType,
       timestamp: new Date().toISOString(),
+      affiliateCode: appliedCode,
+      discountAmount,
+      finalPrice: price - discountAmount,
     };
     
     // Store in sessionStorage for payment page

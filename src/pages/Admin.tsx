@@ -6,7 +6,7 @@ import Layout from "@/components/Layout";
 import {
   adminLogin, adminLogout, onAuthChange,
   subscribeToRecords, updateRecord, deleteRecord, addPortfolioProject, addProduct, addDownloadCode, addPromoCode, getAllPromoCodes, incrementPromoCodeUsage,
-  addAffiliateCode, getAllAffiliateCodes, incrementAffiliateCodeUsage,
+  addAffiliateCode, getAllAffiliateCodes, incrementAffiliateCodeUsage, setupTournamentCleanup,
   type Order, type ContactMessage, type PortfolioProject, type Product, type DownloadCode, type Tournament, type PromoCode, type AffiliateCode,
 } from "@/lib/firebase";
 import { sendNewsletter } from "@/lib/emailService";
@@ -654,7 +654,15 @@ export default function Admin() {
     const unsub4 = subscribeToRecords<PromoConfig>("promos", setPromos);
     const unsub5 = subscribeToRecords<Tournament>("tournaments", setTournaments);
     const unsub6 = subscribeToRecords<UserProfile>("userProfiles", setUserProfiles);
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); };
+    const unsub7 = subscribeToRecords<AffiliateCode>("affiliateCodes", setAffiliateCodes);
+    
+    // Activer le nettoyage automatique des tournois
+    const cleanupTournaments = setupTournamentCleanup();
+    
+    return () => { 
+      unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); unsub6(); unsub7(); 
+      cleanupTournaments(); 
+    };
   }, [user]);
 
   if (user === undefined) {
@@ -1023,7 +1031,16 @@ export default function Admin() {
                                 <span className="font-semibold text-foreground">Réduction:</span> <span className="text-primary font-bold">{affiliate.discountPercentage}%</span>
                               </div>
                               <div>
-                                <span className="font-semibold text-foreground">Utilisations:</span> {affiliate.usageCount || 0}
+                                <span className="font-semibold text-foreground">Utilisations:</span> 
+                                <span className={`font-bold ${(affiliate.usageCount || 0) >= 4 ? 'text-red-400' : (affiliate.usageCount || 0) >= 3 ? 'text-orange-400' : 'text-green-400'}`}>
+                                  {affiliate.usageCount || 0}/4
+                                </span>
+                                {(affiliate.usageCount || 0) >= 4 && (
+                                  <span className="ml-2 text-red-400 text-xs">(Limite atteinte)</span>
+                                )}
+                                {(affiliate.usageCount || 0) >= 3 && (affiliate.usageCount || 0) < 4 && (
+                                  <span className="ml-2 text-orange-400 text-xs">(Presque plein)</span>
+                                )}
                               </div>
                               {affiliate.expiresAt && (
                                 <div>
@@ -1278,8 +1295,8 @@ export default function Admin() {
               </div>
               
               <div className="grid gap-4">
-                {userProfiles.map((profile) => (
-                  <div key={profile.id} className="bg-gradient-card rounded-xl p-6 border border-border/50 shadow-card">
+                {userProfiles.map((profile, index) => (
+                  <div key={`profile-${index}`} className="bg-gradient-card rounded-xl p-6 border border-border/50 shadow-card">
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                       <div className="flex-1">
                         {/* Header du profil */}
@@ -1309,7 +1326,7 @@ export default function Admin() {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                               <Gamepad2 className="w-4 h-4" />
-                              <span>ID Jeu: {(profile as any).gameUserId || 'Non renseigné'}</span>
+                              <span>ID Jeu: Masqué pour la sécurité</span>
                             </div>
                           </div>
                         </div>

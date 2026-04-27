@@ -4,6 +4,7 @@ import { ShoppingCart, CheckCircle, Gamepad2, Zap, Crown, TrendingUp, Trophy } f
 import Layout from "@/components/Layout";
 import SectionHeading from "@/components/SectionHeading";
 import OrderForm from "@/components/OrderForm";
+import LevelUpPassSelector from "@/components/LevelUpPassSelector";
 import { rechargePackages, games } from "@/lib/games";
 
 interface Package {
@@ -256,10 +257,16 @@ export default function RechargePage() {
   const [selectedCategory, setSelectedCategory] = useState<"diamonds" | "subscription" | "other">("diamonds");
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<{ name: string; price: number } | null>(null);
+  const [showLevelUpSelector, setShowLevelUpSelector] = useState(false);
 
   const handleOrder = (packageName: string, price: number) => {
-    setCurrentOrder({ name: packageName, price });
-    setShowOrderForm(true);
+    // Si c'est le Level Up Pass, afficher le sélecteur de niveaux
+    if (packageName.includes("Level Up Pass")) {
+      setShowLevelUpSelector(true);
+    } else {
+      setCurrentOrder({ name: packageName, price });
+      setShowOrderForm(true);
+    }
   };
 
   const gameData = games.find(g => g.id === selectedGame);
@@ -487,6 +494,13 @@ export default function RechargePage() {
           price={currentOrder.price}
           gameType={selectedGame}
           onClose={() => setShowOrderForm(false)}
+        />
+      )}
+      
+      {showLevelUpSelector && (
+        <LevelUpPassSelector
+          onClose={() => setShowLevelUpSelector(false)}
+          gameType={selectedGame}
         />
       )}
     </Layout>

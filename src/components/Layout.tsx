@@ -8,6 +8,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import Logo from "./Logo";
 import Newsletter from "./Newsletter";
 import PromoBar from "./PromoBar";
+import Notifications from "./Notifications";
 
 const navLinks = [
   { to: "/", label: "Accueil" },
@@ -94,15 +95,18 @@ function Navbar() {
             </Link>
           )}
           {currentUser ? (
-            <Link
-              to="/profile"
-              className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
-                location.pathname === "/profile" ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              <User className="w-4 h-4" />
-              Profil
-            </Link>
+            <>
+              <Notifications />
+              <Link
+                to="/profile"
+                className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
+                  location.pathname === "/profile" ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <User className="w-4 h-4" />
+                Profil
+              </Link>
+            </>
           ) : (
             <div className="relative">
               <button

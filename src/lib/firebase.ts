@@ -210,6 +210,9 @@ export interface Order {
   finalPrice?: number;
   discount?: number;
   paymentMethod?: string;
+  // Affiliate fields
+  affiliateCode?: string;
+  discountAmount?: number;
 }
 
 export interface GuildPartnership {
@@ -290,6 +293,19 @@ export interface TournamentApplication {
   message?: string;
   status: "pending" | "approved" | "rejected";
   appliedAt: string;
+}
+
+export interface Notification {
+  id?: string;
+  type: 'tournament' | 'order' | 'general';
+  title: string;
+  message: string;
+  tournamentId?: string;
+  tournamentName?: string;
+  tournamentRoomId?: string;
+  tournamentPassword?: string;
+  timestamp: string;
+  read: boolean;
 }
 
 export interface PromoCode {
@@ -602,30 +618,42 @@ export async function addAffiliateCode(affiliate: Omit<AffiliateCode, "id" | "cr
 }
 
 export async function getAffiliateCodeByCode(code: string): Promise<(AffiliateCode & { id: string }) | null> {
+  console.log("Recherche du code d'affiliation:", code);
   const snapshot = await get(ref(db, "affiliateCodes"));
-  if (!snapshot.exists()) return null;
+  if (!snapshot.exists()) {
+    console.log("Aucun code d'affiliation trouvé dans la base de données");
+    return null;
+  }
   
   const data = snapshot.val();
+  console.log("Codes trouvés:", Object.keys(data));
+  
   for (const [id, val] of Object.entries(data)) {
     const affiliate = { id, ...(val as AffiliateCode) };
+    console.log("Vérification du code:", affiliate.code, "contre:", code);
+    
     if (
       affiliate.code.toUpperCase() === code.toUpperCase() &&
       affiliate.isActive
     ) {
       // Check if expired
       if (affiliate.expiresAt && new Date() > new Date(affiliate.expiresAt)) {
+        console.log("Code expiré:", affiliate.code);
         continue; // Skip expired codes
       }
       
       // Check usage limit (4 utilisations maximum)
       const currentUsage = affiliate.usageCount || 0;
       if (currentUsage >= 4) {
+        console.log("Code limite atteinte:", affiliate.code);
         continue; // Skip codes that have reached the usage limit
       }
       
+      console.log("Code valide trouvé:", affiliate);
       return affiliate as AffiliateCode & { id: string };
     }
   }
+  console.log("Aucun code valide trouvé pour:", code);
   return null;
 }
 
@@ -744,6 +772,68 @@ export async function cleanupExpiredTournaments(): Promise<number> {
   
   await Promise.all(deletePromises);
   return deletedCount;
+}
+
+// ---- Tournament Notifications ----
+
+export async function sendTournamentNotification(tournamentId: string, notificationData: string): Promise<number> {
+  const snapshot = await get(ref(db, `tournamentApplications/${tournamentId}`));
+  if (!snapshot.exists()) return 0;
+  
+  const applications = snapshot.val() as Record<string, TournamentApplication>;
+  const tournamentSnapshot = await get(ref(db, `tournaments/${tournamentId}`));
+  
+  if (!tournamentSnapshot.exists()) return 0;
+  const tournament = tournamentSnapshot.val() as Tournament;
+  
+  // Parser les données : roomId|password
+  const [roomId, password] = notificationData.split('|');
+  
+  let notificationCount = 0;
+  
+  // Envoyer la notification à tous les participants approuvés
+  const notificationPromises = Object.entries(applications).map(async ([userId, application]) => {
+    if (application.status === 'approved') {
+      // Créer la notification pour l'utilisateur
+      const notificationRef = push(ref(db, `notifications/${userId}`));
+      await set(notificationRef, {
+        id: notificationRef.key,
+        type: 'tournament',
+        title: `Tournoi ${tournament.name} - Prêt à commencer !`,
+        message: `Votre tournoi commence bientôt ! Rejoignez la chambre avec les informations ci-dessous.`,
+        tournamentId: tournamentId,
+        tournamentName: tournament.name,
+        tournamentRoomId: roomId,
+        tournamentPassword: password,
+        timestamp: new Date().toISOString(),
+        read: false
+      });
+      
+      notificationCount++;
+      console.log(`Notification sent to user ${userId} for tournament ${tournamentId}`);
+    }
+  });
+  
+  await Promise.all(notificationPromises);
+  return notificationCount;
+}
+
+export async function getUserNotifications(uid: string): Promise<Notification[]> {
+  const snapshot = await get(ref(db, `notifications/${uid}`));
+  if (!snapshot.exists()) return [];
+  
+  const notifications = snapshot.val() as Record<string, Notification>;
+  return Object.entries(notifications)
+    .map(([id, notification]) => ({ ...notification, id }))
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
+export async function markNotificationAsRead(uid: string, notificationId: string): Promise<void> {
+  await update(ref(db, `notifications/${uid}/${notificationId}`), { read: true });
+}
+
+export async function deleteNotification(uid: string, notificationId: string): Promise<void> {
+  await deleteRecord(`notifications/${uid}/${notificationId}`);
 }
 
 export async function updateExpiredTournaments(): Promise<number> {

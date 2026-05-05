@@ -105,7 +105,9 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
     setCodeError("");
 
     try {
+      console.log("Recherche du code:", affiliateCode.toUpperCase());
       const codeData = await getAffiliateCodeByCode(affiliateCode.toUpperCase());
+      console.log("Code trouvé:", codeData);
       
       if (codeData) {
         // Vérifier si le code est proche de la limite
@@ -116,9 +118,12 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
         
         // Code valide
         const discountValue = (price * codeData.discountPercentage) / 100;
+        console.log("Calcul de la réduction:", price, "x", codeData.discountPercentage, "% =", discountValue);
         setDiscountAmount(discountValue);
         setAppliedCode(codeData.code);
         setShowCodeInput(false);
+        
+        console.log("Réduction appliquée:", discountValue, "Nouveau prix:", price - discountValue);
         
         // Incrémenter l'utilisation du code
         await incrementAffiliateCodeUsage(codeData.id!);
@@ -172,6 +177,9 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
       discountAmount,
       finalPrice: price - discountAmount,
     };
+    
+    console.log("Données de commande:", orderData);
+    console.log("Prix final calculé:", price - discountAmount);
     
     // Store in sessionStorage for payment page
     sessionStorage.setItem('currentOrder', JSON.stringify(orderData));
@@ -353,7 +361,7 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
                   </div>
                   {discountAmount > 0 && (
                     <div className="flex justify-between items-center text-sm text-green-400">
-                      <span>Réduction appliquée</span>
+                      <span>Réduction affiliation {appliedCode && `(${appliedCode})`}</span>
                       <span className="font-semibold">-{discountAmount.toLocaleString('fr-FR')} FCFA</span>
                     </div>
                   )}
@@ -376,8 +384,8 @@ export default function OrderForm({ productName, price, gameType, onClose }: Ord
                   💳 Carte Bancaire
                 </button>
                 
-                {/* Affiliate Code Section - Only for logged in users */}
-                {currentUser && (
+                {/* Affiliate Code Section - Accessible to all users */}
+                {true && (
                   <div className="mt-4">
                     {!showCodeInput && !appliedCode ? (
                       <button

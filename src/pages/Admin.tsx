@@ -6,12 +6,13 @@ import Layout from "@/components/Layout";
 import {
   adminLogin, adminLogout, onAuthChange,
   subscribeToRecords, updateRecord, deleteRecord, addPortfolioProject, addProduct, addDownloadCode, addPromoCode, getAllPromoCodes, incrementPromoCodeUsage,
-  addAffiliateCode, getAllAffiliateCodes, incrementAffiliateCodeUsage, setupTournamentCleanup,
+  addAffiliateCode, getAllAffiliateCodes, incrementAffiliateCodeUsage, setupTournamentCleanup, sendTournamentNotification,
   type Order, type ContactMessage, type PortfolioProject, type Product, type DownloadCode, type Tournament, type PromoCode, type AffiliateCode,
 } from "@/lib/firebase";
 import { sendNewsletter } from "@/lib/emailService";
 import type { User } from "firebase/auth";
 import { AddTournamentForm, TournamentApplicationsManager } from "@/components/admin/TournamentManagement";
+import TournamentNotificationSender from "@/components/admin/TournamentNotificationSender";
 
 interface Testimonial {
   id: string;
@@ -1261,6 +1262,9 @@ export default function Admin() {
                         
                         {/* Applications Manager */}
                         <TournamentApplicationsManager tournamentId={t.id} />
+                        
+                        {/* Tournament Notification Sender */}
+                        <TournamentNotificationSender tournamentId={t.id} tournamentName={t.name} />
                       </div>
                       <div className="flex sm:flex-col gap-2">
                         <select

@@ -97,10 +97,13 @@ export default function Payment() {
 
   const calculateFinalPrice = () => {
     if (!orderData) return 0;
-    // Utiliser le prix final avec réduction d'affiliation si disponible, sinon calculer avec promo
-    if (orderData.finalPrice !== undefined) {
-      return orderData.finalPrice * (1 - discount / 100);
+    
+    // Si une réduction d'affiliation est déjà appliquée (finalPrice), on n'applique que la promo sur le prix original
+    if (orderData.finalPrice !== undefined && orderData.discountAmount && orderData.discountAmount > 0) {
+      return orderData.finalPrice; // Utiliser le prix déjà réduit par affiliation
     }
+    
+    // Sinon, appliquer la promo sur le prix original
     return orderData.price * (1 - discount / 100);
   };
 
@@ -125,6 +128,8 @@ export default function Payment() {
         paymentMethod,
         status: "pending",
         createdAt: new Date().toISOString(),
+        affiliateCode: orderData.affiliateCode,
+        discountAmount: orderData.discountAmount,
       });
 
       // Send WhatsApp confirmation
@@ -138,7 +143,8 @@ export default function Payment() {
 
 📦 Produit: ${orderData.productName}
 💰 Prix: ${calculateFinalPrice().toLocaleString('fr-FR')} FCFA
-${discount > 0 ? `🏷️ Réduction: ${discount}%\n` : ''}
+${orderData.affiliateCode && orderData.discountAmount > 0 ? `🏷️ Réduction affiliation (${orderData.affiliateCode}): ${orderData.discountAmount.toLocaleString('fr-FR')} FCFA\n` : ''}
+${discount > 0 ? `🏷️ Réduction promo: ${discount}%\n` : ''}
 💳 Paiement: ${paymentMethod}
 
 Merci de traiter cette commande!
